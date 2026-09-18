@@ -5,7 +5,7 @@ namespace App\Models;
 use App\Enums\MunicipalityEnum;
 use Illuminate\Database\Eloquent\Model;
 
-class FarmerProfile extends Model
+class Report extends Model
 {
     protected function casts(): array
     {

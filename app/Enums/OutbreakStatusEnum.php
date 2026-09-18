@@ -2,7 +2,7 @@
 
 namespace App\Enums;
 
-enum StatusEnum: string
+enum OutbreakStatusEnum: string
 {
     case Active = 'active';
     case Resolved = 'resolved';
