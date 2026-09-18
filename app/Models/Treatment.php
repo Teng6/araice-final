@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Treatments extends Model
 {
-    protected function casts(): array {
+    protected function casts(): array
+    {
         return [
             'type' => TreatmentTypeEnum::class,
         ];

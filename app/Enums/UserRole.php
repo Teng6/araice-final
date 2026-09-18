@@ -2,7 +2,8 @@
 
 namespace App\Enums;
 
-enum UserRole: string{
+enum UserRole: string
+{
     case Farmer = 'farmer';
     case Admin = 'admin';
     case LguStaff = 'lgu_staff';
