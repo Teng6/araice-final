@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Outbreak extends Model
 {
-    protected function casts(): array{
+    protected function casts(): array
+    {
         return [
             'status' => StatusEnum::class,
         ];
