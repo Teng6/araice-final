@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class RiceVarieties extends Model
+class RiceVariety extends Model
 {
     //
 }

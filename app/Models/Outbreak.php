@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\StatusEnum;
+use App\Enums\OutbreakStatusEnum;
 use Illuminate\Database\Eloquent\Model;
 
 class Outbreak extends Model
@@ -10,7 +10,7 @@ class Outbreak extends Model
     protected function casts(): array
     {
         return [
-            'status' => StatusEnum::class,
+            'status' => OutbreakStatusEnum::class,
         ];
     }
 }
