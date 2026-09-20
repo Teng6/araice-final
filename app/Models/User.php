@@ -47,7 +47,7 @@ class User extends Authenticatable
     }
 
     /**
-     * @return HasOne<FarmerProfile, User>
+     * @return HasOne<FarmerProfile, $this>
      */
     public function farmerProfile(): HasOne
     {

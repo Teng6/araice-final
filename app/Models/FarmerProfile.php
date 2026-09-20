@@ -16,7 +16,7 @@ class FarmerProfile extends Model
     }
 
     /**
-     * @return BelongsTo<User, FarmerProfile>
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
