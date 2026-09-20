@@ -4,7 +4,6 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
-use App\Enums\MunicipalityEnum;
 use App\Enums\UserRole;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -18,6 +17,7 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property string $name
+ * @property UserRole $role
  * @property string $email
  * @property Carbon|null $email_verified_at
  * @property string $password
@@ -43,10 +43,12 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
-            'municipality' => MunicipalityEnum::class,
         ];
     }
 
+    /**
+     * @return HasOne<FarmerProfile, User>
+     */
     public function farmerProfile(): HasOne
     {
         return $this->hasOne(FarmerProfile::class);
