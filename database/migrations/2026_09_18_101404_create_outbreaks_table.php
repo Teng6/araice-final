@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('municipality');
             $table->string('status')->default('active');
             $table->foreignId('closed_by')->nullable()->constrained('users')->cascadeOnDelete();
-            $table->timestamp('closed_at');
+            $table->timestamp('closed_at')->nullable();
             $table->timestamps();
         });
     }
