@@ -12,6 +12,7 @@ class Scan extends Model
         'outbreak_id', 'image_url', 'confidence_score', 'raw_predictions', 'status', 'gps_lat',
         'gps_long', 'scan_date',
     ];
+
     protected function casts(): array
     {
         return [
@@ -20,20 +21,23 @@ class Scan extends Model
         ];
     }
 
-    public function farmer(): BelongsTo{
+    public function farmer(): BelongsTo
+    {
         return $this->belongsTo(FarmerProfile::class, 'farmer_id');
     }
 
-    public function user(): BelongsTo{
+    public function user(): BelongsTo
+    {
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
-    public function disease(): BelongsTo{
+    public function disease(): BelongsTo
+    {
         return $this->belongsTo(Disease::class);
     }
 
-    public function variety(): BelongsTo{
+    public function variety(): BelongsTo
+    {
         return $this->belongsTo(RiceVariety::class, 'variety_id');
     }
-
 }
