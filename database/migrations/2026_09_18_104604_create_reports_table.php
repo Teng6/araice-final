@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('generated_by')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('generated_by')->constrained('users')->restrictOnDelete();
             $table->string('municipality');
             $table->date('range_start');
             $table->date('range_end');

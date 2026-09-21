@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('disease_id')->constrained()->cascadeOnDelete();
             $table->string('municipality');
             $table->string('status')->default('active');
-            $table->foreignId('closed_by')->nullable()->constrained('users')->cascadeOnDelete();
+            $table->foreignId('closed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('closed_at')->nullable();
             $table->timestamps();
         });
