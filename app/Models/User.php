@@ -9,6 +9,8 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -53,4 +55,35 @@ class User extends Authenticatable
     {
         return $this->hasOne(FarmerProfile::class);
     }
+
+    /**
+     * @return HasMany<Scan, $this>
+     */
+    public function scans(): HasMany{
+        return $this->hasMany(Scan::class, 'uploaded_by');
+    }
+
+    /**
+     * @return HasMany<Report, $this>
+     */
+    public function reports(): HasMany{
+        return $this->hasMany(Report::class, 'generated_by');
+    }
+
+    /**
+     * @return HasMany<Outbreak, $this>
+     */
+    public function outbreaks(): HasMany{
+        return $this->hasMany(Outbreak::class, 'closed_by');
+    }
+
+    /**
+     * @return BelongsToMany<Alert, $this>
+     */
+    public function alerts(): BelongsToMany{
+        return $this->belongsToMany(Alert::class, 'alert_user')
+        ->withPivot('read_at')
+        ->withTimestamps();
+    }
+
 }
