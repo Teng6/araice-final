@@ -21,21 +21,33 @@ class Scan extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<FarmerProfile, $this>
+     */
     public function farmer(): BelongsTo
     {
         return $this->belongsTo(FarmerProfile::class, 'farmer_id');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
+    /**
+     * @return BelongsTo<Disease, $this>
+     */
     public function disease(): BelongsTo
     {
         return $this->belongsTo(Disease::class);
     }
 
+    /**
+     * @return BelongsTo<RiceVariety, $this>
+     */
     public function variety(): BelongsTo
     {
         return $this->belongsTo(RiceVariety::class, 'variety_id');
