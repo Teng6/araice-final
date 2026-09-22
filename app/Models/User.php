@@ -59,31 +59,34 @@ class User extends Authenticatable
     /**
      * @return HasMany<Scan, $this>
      */
-    public function scans(): HasMany{
+    public function scans(): HasMany
+    {
         return $this->hasMany(Scan::class, 'uploaded_by');
     }
 
     /**
      * @return HasMany<Report, $this>
      */
-    public function reports(): HasMany{
+    public function reports(): HasMany
+    {
         return $this->hasMany(Report::class, 'generated_by');
     }
 
     /**
      * @return HasMany<Outbreak, $this>
      */
-    public function outbreaks(): HasMany{
+    public function outbreaks(): HasMany
+    {
         return $this->hasMany(Outbreak::class, 'closed_by');
     }
 
     /**
      * @return BelongsToMany<Alert, $this>
      */
-    public function alerts(): BelongsToMany{
+    public function alerts(): BelongsToMany
+    {
         return $this->belongsToMany(Alert::class, 'alert_user')
-        ->withPivot('read_at')
-        ->withTimestamps();
+            ->withPivot('read_at')
+            ->withTimestamps();
     }
-
 }

@@ -12,22 +12,24 @@ class Disease extends Model
     /**
      * @return HasMany<Scan, $this>
      */
-    public function scans(): HasMany{
-        return $this->hasMany(Scan::class);     
+    public function scans(): HasMany
+    {
+        return $this->hasMany(Scan::class);
     }
 
     /**
      * @return HasMany<Outbreak, $this>
      */
-    public function outbreaks(): HasMany{
+    public function outbreaks(): HasMany
+    {
         return $this->hasMany(Outbreak::class);
     }
-    
+
     /**
      * @return HasMany<Treatment, $this>
      */
-    public function treatments(): HasMany{
+    public function treatments(): HasMany
+    {
         return $this->hasMany(Treatment::class);
     }
-
 }

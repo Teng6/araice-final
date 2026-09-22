@@ -27,7 +27,8 @@ class FarmerProfile extends Model
     /**
      * @return HasMany<Scan, $this>
      */
-    public function scans(): HasMany{
+    public function scans(): HasMany
+    {
         return $this->hasMany(Scan::class, 'farmer_id');
     }
 }
