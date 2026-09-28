@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ScanStatusEnum;
+use App\Enums\ScanTypeEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -16,6 +17,7 @@ class Scan extends Model
     protected function casts(): array
     {
         return [
+            'scan_type' => ScanTypeEnum::class,
             'status' => ScanStatusEnum::class,
             'raw_predictions' => 'array',
         ];
@@ -51,5 +53,13 @@ class Scan extends Model
     public function variety(): BelongsTo
     {
         return $this->belongsTo(RiceVariety::class, 'variety_id');
+    }
+
+    /**
+     * @return BelongsTo<Outbreak, $this>
+     */
+    public function outbreak(): BelongsTo
+    {
+        return $this->belongsTo(Outbreak::class);
     }
 }
