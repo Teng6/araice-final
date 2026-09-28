@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Report extends Model
 {
-    protected $fillable = ['summary_data', 'municipality', 'range_start', 'range_end'];
+    protected $fillable = ['summary_data', 'municipality', 'range_start', 'range_end', 'generated_by'];
 
     protected function casts(): array
     {
