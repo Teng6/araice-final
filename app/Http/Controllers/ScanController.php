@@ -40,7 +40,7 @@ class ScanController extends Controller
             'farmer_id' => $profile->id,
             'uploaded_by' => $user->id,
             'scan_type' => $validated['scan_type'],
-            'variety_id' => $valdiate['variety_id'] ?? null,
+            'variety_id' => $validated['variety_id'] ?? null,
             'image_url' => $path,
             'status' => ScanStatusEnum::Pending,
             'gps_lat' => $profile->farm_lat,
