@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('status');
             $table->decimal('gps_lat', 10, 7)->nullable();
             $table->decimal('gps_long', 10, 7)->nullable();
-            $table->timestamp('scan_date');
+            $table->timestamp('scan_date')->useCurrent();
             $table->timestamps();
         });
     }
