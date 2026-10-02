@@ -9,6 +9,7 @@ use App\Models\FarmerProfile;
 use App\Models\RiceVariety;
 use App\Models\Scan;
 use App\Services\GrainClassifierService;
+use App\Services\OutbreakDetectionService;
 use App\Services\ViTService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -55,7 +56,7 @@ class ScanController extends Controller
         ]);
     }
 
-    public function store(Request $request, ViTService $vit, GrainClassifierService $grain): RedirectResponse
+    public function store(Request $request, ViTService $vit, GrainClassifierService $grain, OutbreakDetectionService $outbreaks): RedirectResponse
     {
 
         set_time_limit(120);
@@ -127,6 +128,14 @@ class ScanController extends Controller
         } catch (Throwable $e) {
             report($e);
             $scan->update(['status' => ScanStatusEnum::Failed]);
+        }
+
+        if ($scan->status === ScanStatusEnum::Completed) {
+            try {
+                $outbreaks->handle($scan);
+            } catch (Throwable $e) {
+                report($e);
+            }
         }
 
         return to_route('scans.show', $scan);
