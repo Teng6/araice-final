@@ -7,9 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * @property int $id
+ * @property SeverityEnum $severity
+ */
 class Alert extends Model
 {
-    protected $fillable = ['message', 'severity'];
+    protected $fillable = ['message', 'severity', 'outbreak_id'];
 
     protected function casts(): array
     {

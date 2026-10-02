@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\OutbreakController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ScanController;
 use Illuminate\Foundation\Application;
@@ -24,6 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::resource('scans', ScanController::class)->only(['index', 'create', 'store', 'show']);
+    Route::patch('/outbreaks/{outbreak}/close', [OutbreakController::class, 'close'])->name('outbreaks.close');
 });
 
 require __DIR__.'/auth.php';
