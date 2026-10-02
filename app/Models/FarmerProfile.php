@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FarmerProfile extends Model
 {
+    protected $fillable = ['full_name', 'barangay', 'municipality', 'contact_number',
+        'farm_lat', 'farm_long'];
+
     protected function casts(): array
     {
         return [

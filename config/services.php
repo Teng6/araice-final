@@ -35,4 +35,7 @@ return [
         ],
     ],
 
+    'vit' => ['url' => env('VIT_API_URL'), 'timeout' => 60],
+    'grain' => ['url' => env('GRAIN_API_URL'), 'timeout' => 60],
+
 ];
