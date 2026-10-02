@@ -22,7 +22,9 @@ class ScanPolicy
     public function view(User $user, Scan $scan): bool
     {
         if ($user->role === UserRole::Farmer) {
-            return $scan->farmer_id === $user->farmerProfile->id;
+            $profileId = $user->farmerProfile?->id;
+
+            return $profileId !== null && $scan->farmer_id === $profileId;
         }
 
         return $user->role === UserRole::LguStaff;

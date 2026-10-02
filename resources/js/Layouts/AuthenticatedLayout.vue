@@ -37,6 +37,32 @@ const showingNavigationDropdown = ref(false);
                                 >
                                     Dashboard
                                 </NavLink>
+
+                                <ResponsiveNavLink
+                                    :href="route('scans.index')"
+                                    :active="route().current('scans.index')"
+                                >
+                                    Scans
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    :href="route('scans.create')"
+                                    :active="route().current('scans.create')"
+                                >
+                                    New Scan
+                                </ResponsiveNavLink>
+
+                                <NavLink
+                                    :href="route('scans.index')"
+                                    :active="route().current('scans.index')"
+                                >
+                                    Scans
+                                </NavLink>
+                                <NavLink
+                                    :href="route('scans.create')"
+                                    :active="route().current('scans.create')"
+                                >
+                                    New Scan
+                                </NavLink>
                             </div>
                         </div>
 

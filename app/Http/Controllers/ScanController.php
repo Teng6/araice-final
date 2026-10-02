@@ -33,6 +33,28 @@ class ScanController extends Controller
         ]);
     }
 
+    public function index(Request $request): Response
+    {
+        Gate::authorize('viewAny', Scan::class);
+
+        $user = $request->user();
+
+        $query = Scan::with(['disease:id,name', 'variety:id,name'])->latest();
+
+        if ($user->role === UserRole::Farmer) {
+            $profileId = $user->farmerProfile?->id;
+            abort_unless($profileId !== null, 403);
+
+            $query->where('farmer_id', $profileId);
+        } else {
+            $query->with('farmer:id,full_name,contact_number');
+        }
+
+        return Inertia::render('scans/index', [
+            'scans' => $query->paginate(15)->withQueryString(),
+        ]);
+    }
+
     public function store(Request $request, ViTService $vit, GrainClassifierService $grain): RedirectResponse
     {
 
@@ -110,11 +132,15 @@ class ScanController extends Controller
         return to_route('scans.show', $scan);
     }
 
-    public function show(Scan $scan): Response
+    public function show(Request $request, Scan $scan): Response
     {
         Gate::authorize('view', $scan);
 
         $scan->load(['disease', 'variety']);
+
+        if ($request->user()->role !== UserRole::Farmer) {
+            $scan->load('farmer:id,full_name,contact_number');
+        }
 
         return Inertia::render('scans/show', ['scan' => $scan]);
     }

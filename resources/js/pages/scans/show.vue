@@ -12,6 +12,11 @@ interface Scan {
     scan_date: string;
     disease: { id: number; name: string } | null;
     variety: { id: number; name: string } | null;
+    farmer?: {
+        id: number;
+        full_name: string;
+        contact_number: string | null;
+    } | null;
 }
 
 defineProps<{ scan: Scan }>();
@@ -22,6 +27,14 @@ defineProps<{ scan: Scan }>();
 
     <div>
         <h1>Scan #{{ scan.id }}</h1>
+
+        <p v-if="scan.farmer">
+            Farmer: {{ scan.farmer.full_name }}
+            <span v-if="scan.farmer.contact_number">
+                ({{ scan.farmer.contact_number }})
+            </span>
+        </p>
+
         <img :src="`/storage/${scan.image_url}`" alt="Scan image" width="320" />
 
         <p>Type: {{ scan.scan_type }}</p>
