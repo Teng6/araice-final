@@ -37,20 +37,6 @@ const showingNavigationDropdown = ref(false);
                                 >
                                     Dashboard
                                 </NavLink>
-
-                                <ResponsiveNavLink
-                                    :href="route('scans.index')"
-                                    :active="route().current('scans.index')"
-                                >
-                                    Scans
-                                </ResponsiveNavLink>
-                                <ResponsiveNavLink
-                                    :href="route('scans.create')"
-                                    :active="route().current('scans.create')"
-                                >
-                                    New Scan
-                                </ResponsiveNavLink>
-
                                 <NavLink
                                     :href="route('scans.index')"
                                     :active="route().current('scans.index')"
@@ -62,6 +48,21 @@ const showingNavigationDropdown = ref(false);
                                     :active="route().current('scans.create')"
                                 >
                                     New Scan
+                                </NavLink>
+                                <NavLink
+                                    v-if="
+                                        $page.props.auth.user.role !== 'farmer'
+                                    "
+                                    :href="route('reports.index')"
+                                    :active="route().current('reports.*')"
+                                >
+                                    Reports
+                                </NavLink>
+                                <NavLink
+                                    :href="route('map.index')"
+                                    :active="route().current('map.index')"
+                                >
+                                    Map
                                 </NavLink>
                             </div>
                         </div>
@@ -169,6 +170,31 @@ const showingNavigationDropdown = ref(false);
                             :active="route().current('dashboard')"
                         >
                             Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('scans.index')"
+                            :active="route().current('scans.index')"
+                        >
+                            Scans
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('scans.create')"
+                            :active="route().current('scans.create')"
+                        >
+                            New Scan
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            v-if="$page.props.auth.user.role !== 'farmer'"
+                            :href="route('reports.index')"
+                            :active="route().current('reports.*')"
+                        >
+                            Reports
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('map.index')"
+                            :active="route().current('map.index')"
+                        >
+                            Map
                         </ResponsiveNavLink>
                     </div>
 

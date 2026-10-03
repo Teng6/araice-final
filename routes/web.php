@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MapController;
 use App\Http\Controllers\OutbreakController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
@@ -28,6 +29,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('scans', ScanController::class)->only(['index', 'create', 'store', 'show']);
     Route::patch('/outbreaks/{outbreak}/close', [OutbreakController::class, 'close'])->name('outbreaks.close');
     Route::resource('reports', ReportController::class)->only(['index', 'create', 'store', 'show']);
+    Route::get('/map', [MapController::class, 'index'])->name('map.index');
 });
 
 require __DIR__.'/auth.php';
