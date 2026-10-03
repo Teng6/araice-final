@@ -30,6 +30,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/outbreaks/{outbreak}/close', [OutbreakController::class, 'close'])->name('outbreaks.close');
     Route::resource('reports', ReportController::class)->only(['index', 'create', 'store', 'show']);
     Route::get('/map', [MapController::class, 'index'])->name('map.index');
+    Route::get('/outbreaks', [OutbreakController::class, 'index'])->name('outbreaks.index');
 });
 
 require __DIR__.'/auth.php';

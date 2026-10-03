@@ -59,6 +59,15 @@ const showingNavigationDropdown = ref(false);
                                     Reports
                                 </NavLink>
                                 <NavLink
+                                    v-if="
+                                        $page.props.auth.user.role !== 'farmer'
+                                    "
+                                    :href="route('outbreaks.index')"
+                                    :active="route().current('outbreaks.*')"
+                                >
+                                    Outbreaks
+                                </NavLink>
+                                <NavLink
                                     :href="route('map.index')"
                                     :active="route().current('map.index')"
                                 >
@@ -189,6 +198,13 @@ const showingNavigationDropdown = ref(false);
                             :active="route().current('reports.*')"
                         >
                             Reports
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            v-if="$page.props.auth.user.role !== 'farmer'"
+                            :href="route('outbreaks.index')"
+                            :active="route().current('outbreaks.*')"
+                        >
+                            Outbreaks
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             :href="route('map.index')"
