@@ -98,7 +98,7 @@ class ScanController extends Controller
 
         $scan = Scan::create([
             'farmer_id' => $farmerId,
-            'uploaded_by' => $user->id,
+            'uploaded_by_id' => $user->id,
             'scan_type' => $validated['scan_type'],
             'variety_id' => $isLeaf ? ($validated['variety_id'] ?? null) : null,
             'image_url' => $path,

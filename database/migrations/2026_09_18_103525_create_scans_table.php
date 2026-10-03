@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('scans', function (Blueprint $table) {
             $table->id();
             $table->foreignId('farmer_id')->nullable()->constrained('farmer_profiles')->cascadeOnDelete();
-            $table->foreignId('uploaded_by')->constrained('users')->restrictOnDelete();
+            $table->foreignId('uploaded_by_id')->constrained('users')->restrictOnDelete();
             $table->string('scan_type');
             $table->foreignId('disease_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('variety_id')->nullable()->constrained('rice_varieties')->nullOnDelete();

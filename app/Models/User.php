@@ -62,7 +62,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function scans(): HasMany
     {
-        return $this->hasMany(Scan::class, 'uploaded_by');
+        return $this->hasMany(Scan::class, 'uploaded_by_id');
     }
 
     /**

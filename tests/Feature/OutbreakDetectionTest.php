@@ -16,7 +16,7 @@ function leafScan(Disease $disease, MunicipalityEnum $municipality, ?FarmerProfi
 
     return Scan::factory()->for($farmer, 'farmer')->create([
         'disease_id' => $disease->id,
-        'uploaded_by' => $farmer->user_id,
+        'uploaded_by_id' => $farmer->user_id,
         ...$attributes,
     ]);
 }
