@@ -14,6 +14,9 @@ class Report extends Model
     {
         return [
             'municipality' => MunicipalityEnum::class,
+            'summary_data' => 'array',
+            'range_start' => 'date',
+            'range_end' => 'date',
         ];
     }
 
