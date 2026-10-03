@@ -83,7 +83,7 @@ onMounted(() => {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">
+            <h2 class="text-xl leading-tight font-semibold text-gray-800">
                 Outbreak Map
             </h2>
         </template>
