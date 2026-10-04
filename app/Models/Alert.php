@@ -36,7 +36,6 @@ class Alert extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'alert_user')
-            ->withPivot('read_at')
-            ->withTimestamps();
+            ->withPivot('read_at');
     }
 }

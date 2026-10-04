@@ -12,11 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('alert_user', function (Blueprint $table) {
-            $table->id();
+            $table->primary(['alert_id', 'user_id']);
             $table->foreignId('alert_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->timestamp('read_at')->nullable();
-            $table->timestamps();
         });
     }
 
@@ -25,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('alert_user');
     }
 };
