@@ -53,6 +53,15 @@ const showingNavigationDropdown = ref(false);
                                     v-if="
                                         $page.props.auth.user.role !== 'farmer'
                                     "
+                                    :href="route('scans.unlinked')"
+                                    :active="route().current('scans.unlinked')"
+                                >
+                                    Unlinked scans
+                                </NavLink>
+                                <NavLink
+                                    v-if="
+                                        $page.props.auth.user.role !== 'farmer'
+                                    "
                                     :href="route('reports.index')"
                                     :active="route().current('reports.*')"
                                 >
@@ -205,6 +214,13 @@ const showingNavigationDropdown = ref(false);
                             :active="route().current('scans.create')"
                         >
                             New Scan
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            v-if="$page.props.auth.user.role !== 'farmer'"
+                            :href="route('scans.unlinked')"
+                            :active="route().current('scans.unlinked')"
+                        >
+                            Unlinked scans
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             v-if="$page.props.auth.user.role !== 'farmer'"
