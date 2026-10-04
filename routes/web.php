@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AlertController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\OutbreakController;
 use App\Http\Controllers\ProfileController;
@@ -31,6 +32,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('reports', ReportController::class)->only(['index', 'create', 'store', 'show']);
     Route::get('/map', [MapController::class, 'index'])->name('map.index');
     Route::get('/outbreaks', [OutbreakController::class, 'index'])->name('outbreaks.index');
+    Route::resource('alerts', AlertController::class)->only(['index', 'show']);
 });
 
 require __DIR__.'/auth.php';

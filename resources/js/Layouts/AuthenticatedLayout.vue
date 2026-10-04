@@ -68,6 +68,20 @@ const showingNavigationDropdown = ref(false);
                                     Outbreaks
                                 </NavLink>
                                 <NavLink
+                                    :href="route('alerts.index')"
+                                    :active="route().current('alerts.*')"
+                                >
+                                    Alerts
+                                    <span
+                                        v-if="
+                                            $page.props.unread_alerts_count > 0
+                                        "
+                                        class="ms-1 rounded-full bg-red-600 px-1.5 text-xs text-white"
+                                    >
+                                        {{ $page.props.unread_alerts_count }}
+                                    </span>
+                                </NavLink>
+                                <NavLink
                                     :href="route('map.index')"
                                     :active="route().current('map.index')"
                                 >

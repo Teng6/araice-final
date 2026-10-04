@@ -3,7 +3,7 @@ import './bootstrap';
 
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { createApp, DefineComponent, h } from 'vue';
+import { createApp, createSSRApp, DefineComponent, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
@@ -16,10 +16,20 @@ void createInertiaApp({
             import.meta.glob<DefineComponent>('./pages/**/*.vue'),
         ),
     setup({ el, App, props, plugin }) {
-        createApp({ render: () => h(App, props) })
+        const isServer = typeof window === 'undefined';
+        const app = (isServer ? createSSRApp : createApp)({
+            render: () => h(App, props),
+        })
             .use(plugin)
-            .use(ZiggyVue)
-            .mount(el);
+            .use(ZiggyVue);
+
+        if (isServer) {
+            return app;
+        }
+
+        app.mount(el);
+
+        return app;
     },
     progress: {
         color: '#4B5563',
