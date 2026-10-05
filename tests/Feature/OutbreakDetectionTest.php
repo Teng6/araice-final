@@ -3,11 +3,13 @@
 use App\Enums\MunicipalityEnum;
 use App\Enums\OutbreakStatusEnum;
 use App\Enums\SeverityEnum;
+use App\Enums\UserRole;
 use App\Models\Alert;
 use App\Models\Disease;
 use App\Models\FarmerProfile;
 use App\Models\Outbreak;
 use App\Models\Scan;
+use App\Models\User;
 use App\Services\OutbreakDetectionService;
 
 function leafScan(Disease $disease, MunicipalityEnum $municipality, ?FarmerProfile $farmer = null, array $attributes = []): Scan
@@ -16,7 +18,7 @@ function leafScan(Disease $disease, MunicipalityEnum $municipality, ?FarmerProfi
 
     return Scan::factory()->for($farmer, 'farmer')->create([
         'disease_id' => $disease->id,
-        'uploaded_by' => $farmer->user_id,
+        'uploaded_by_id' => $farmer->user_id,
         ...$attributes,
     ]);
 }
@@ -118,28 +120,44 @@ test('unlinked scans are excluded from the count', function () {
         ->and($unlinked->fresh()->outbreak_id)->toBeNull();
 });
 
-test('alert recipients are a snapshot of the municipality at firing time', function () {
+test('alert recipients include municipality farmers and all LGU/admin users', function () {
     $disease = Disease::factory()->create();
 
-    $bystander = FarmerProfile::factory()->inMunicipality(MunicipalityEnum::Orion)->create();
-    $elsewhere = FarmerProfile::factory()->inMunicipality(MunicipalityEnum::Orani)->create();
+    $municipalityFarmers = [
+        FarmerProfile::factory()->inMunicipality(MunicipalityEnum::Orion)->create(),
+        FarmerProfile::factory()->inMunicipality(MunicipalityEnum::Orion)->create(),
+    ];
+    $outOfAreaFarmer = FarmerProfile::factory()->inMunicipality(MunicipalityEnum::Orani)->create();
+    $lguUsers = [
+        User::factory()->create(['role' => UserRole::LguStaff]),
+        User::factory()->create(['role' => UserRole::LguStaff]),
+    ];
+    $adminUsers = [
+        User::factory()->create(['role' => UserRole::Admin]),
+        User::factory()->create(['role' => UserRole::Admin]),
+    ];
 
     detect(
-        leafScan($disease, MunicipalityEnum::Orion),
-        leafScan($disease, MunicipalityEnum::Orion),
+        leafScan($disease, MunicipalityEnum::Orion, $municipalityFarmers[0]),
+        leafScan($disease, MunicipalityEnum::Orion, $municipalityFarmers[1]),
         leafScan($disease, MunicipalityEnum::Orion),
     );
 
     $alert = Alert::sole();
     $recipientIds = $alert->users()->pluck('users.id');
 
-    expect($recipientIds)->toHaveCount(4)
-        ->and($recipientIds)->toContain($bystander->user_id)
-        ->and($recipientIds)->not->toContain($elsewhere->user_id);
+    expect($recipientIds)->toHaveCount(7)
+        ->and($recipientIds)->toContain($municipalityFarmers[0]->user_id)
+        ->and($recipientIds)->toContain($municipalityFarmers[1]->user_id)
+        ->and($recipientIds)->toContain($lguUsers[0]->id)
+        ->and($recipientIds)->toContain($lguUsers[1]->id)
+        ->and($recipientIds)->toContain($adminUsers[0]->id)
+        ->and($recipientIds)->toContain($adminUsers[1]->id)
+        ->and($recipientIds)->not->toContain($outOfAreaFarmer->user_id);
 
     FarmerProfile::factory()->inMunicipality(MunicipalityEnum::Orion)->create();
 
-    expect($alert->users()->count())->toBe(4);
+    expect($alert->users()->count())->toBe(7);
 });
 
 test('a new alert fires only when severity moves up a tier', function () {

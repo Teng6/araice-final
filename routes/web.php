@@ -1,8 +1,12 @@
 <?php
 
+use App\Http\Controllers\AlertController;
+use App\Http\Controllers\MapController;
 use App\Http\Controllers\OutbreakController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ScanController;
+use App\Http\Controllers\ScanReviewController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -24,8 +28,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/scans/unlinked', [ScanReviewController::class, 'index'])->name('scans.unlinked');
     Route::resource('scans', ScanController::class)->only(['index', 'create', 'store', 'show']);
+    Route::post('/scans/{scan}/link-outbreak', [ScanReviewController::class, 'store'])->name('scans.link-outbreak');
     Route::patch('/outbreaks/{outbreak}/close', [OutbreakController::class, 'close'])->name('outbreaks.close');
+    Route::resource('reports', ReportController::class)->only(['index', 'create', 'store', 'show']);
+    Route::get('/map', [MapController::class, 'index'])->name('map.index');
+    Route::get('/outbreaks', [OutbreakController::class, 'index'])->name('outbreaks.index');
+    Route::resource('alerts', AlertController::class)->only(['index', 'show']);
 });
 
 require __DIR__.'/auth.php';

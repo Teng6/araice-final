@@ -37,4 +37,9 @@ class ScanPolicy
     {
         return true;
     }
+
+    public function review(User $user): bool
+    {
+        return $user->role !== UserRole::Farmer;
+    }
 }

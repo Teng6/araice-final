@@ -34,6 +34,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'unread_alerts_count' => fn () => $request->user()
+                ?->alerts()
+                ->wherePivotNull('read_at')
+                ->count() ?? 0,
         ];
     }
 }

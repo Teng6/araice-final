@@ -19,4 +19,9 @@ class OutbreakPolicy
 
         return true;
     }
+
+    public function viewAny(User $user): bool
+    {
+        return $user->role !== UserRole::Farmer;
+    }
 }

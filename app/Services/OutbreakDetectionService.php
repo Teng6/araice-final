@@ -7,9 +7,11 @@ use App\Enums\OutbreakStatusEnum;
 use App\Enums\ScanStatusEnum;
 use App\Enums\ScanTypeEnum;
 use App\Enums\SeverityEnum;
+use App\Enums\UserRole;
 use App\Models\FarmerProfile;
 use App\Models\Outbreak;
 use App\Models\Scan;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -80,9 +82,12 @@ class OutbreakDetectionService
                 'severity' => $severity,
             ]);
 
-            $alert->users()->attach(
-                FarmerProfile::where('municipality', $municipality)->pluck('user_id')->all()
-            );
+            $recipientIds = array_unique(array_merge(
+                FarmerProfile::where('municipality', $municipality)->pluck('user_id')->all(),
+                User::query()->whereIn('role', [UserRole::LguStaff, UserRole::Admin])->pluck('id')->all(),
+            ));
+
+            $alert->users()->attach(array_values($recipientIds));
         });
     }
 

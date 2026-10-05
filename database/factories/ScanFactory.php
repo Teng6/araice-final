@@ -24,7 +24,7 @@ class ScanFactory extends Factory
     {
         return [
             'farmer_id' => FarmerProfile::factory(),
-            'uploaded_by' => User::factory(),
+            'uploaded_by_id' => User::factory(),
             'scan_type' => ScanTypeEnum::Leaf,
             'disease_id' => Disease::factory(),
             'image_url' => 'scans/test.jpg',

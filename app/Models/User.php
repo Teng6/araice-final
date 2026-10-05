@@ -62,7 +62,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function scans(): HasMany
     {
-        return $this->hasMany(Scan::class, 'uploaded_by');
+        return $this->hasMany(Scan::class, 'uploaded_by_id');
     }
 
     /**
@@ -87,7 +87,6 @@ class User extends Authenticatable implements MustVerifyEmail
     public function alerts(): BelongsToMany
     {
         return $this->belongsToMany(Alert::class, 'alert_user')
-            ->withPivot('read_at')
-            ->withTimestamps();
+            ->withPivot('read_at');
     }
 }

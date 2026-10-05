@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\SeverityEnum;
+use Database\Factories\AlertFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -13,6 +15,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  */
 class Alert extends Model
 {
+    /** @use HasFactory<AlertFactory> */
+    use HasFactory;
+
     protected $fillable = ['message', 'severity', 'outbreak_id'];
 
     protected function casts(): array
@@ -36,7 +41,6 @@ class Alert extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'alert_user')
-            ->withPivot('read_at')
-            ->withTimestamps();
+            ->withPivot('read_at');
     }
 }

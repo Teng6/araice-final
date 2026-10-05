@@ -24,7 +24,7 @@ class Scan extends Model
     /** @use HasFactory<ScanFactory> */
     use HasFactory;
 
-    protected $fillable = ['farmer_id', 'uploaded_by', 'scan_type', 'disease_id', 'variety_id',
+    protected $fillable = ['farmer_id', 'uploaded_by_id', 'scan_type', 'disease_id', 'variety_id',
         'outbreak_id', 'image_url', 'confidence_score', 'raw_predictions', 'status', 'gps_lat',
         'gps_long', 'scan_date',
     ];
@@ -51,7 +51,7 @@ class Scan extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'uploaded_by');
+        return $this->belongsTo(User::class, 'uploaded_by_id');
     }
 
     /**

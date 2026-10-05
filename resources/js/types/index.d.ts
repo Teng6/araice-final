@@ -6,8 +6,19 @@ export interface User {
     email_verified_at?: string;
 }
 
+export interface Alert {
+    id: number;
+    message: string;
+    severity: 'low' | 'medium' | 'high';
+    disease: string | null;
+    municipality: string;
+    created_at: string;
+    read_at: string | null;
+}
+
 export interface PageProps {
     auth: {
         user: User;
     };
+    unread_alerts_count: number;
 }
