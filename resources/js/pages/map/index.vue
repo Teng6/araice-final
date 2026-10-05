@@ -4,27 +4,45 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import Map from 'ol/Map';
 import View from 'ol/View';
+import Feature from 'ol/Feature';
 import type { FeatureLike } from 'ol/Feature';
+import Point from 'ol/geom/Point';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON';
 import OSM from 'ol/source/OSM';
 import { fromLonLat, transformExtent } from 'ol/proj';
-import { Fill, Stroke, Style } from 'ol/style';
+import CircleStyle from 'ol/style/Circle';
+import { Fill, Stroke, Style, Text } from 'ol/style';
 import 'ol/ol.css';
+
+type Severity = 'low' | 'medium' | 'high';
 
 interface OutbreakPin {
     id: number;
     disease: string;
     municipality: string;
     created_at: string | null;
+    severity: Severity;
 }
 
-const props = defineProps<{ outbreaks: OutbreakPin[] }>();
+interface FarmPin {
+    id: number;
+    name: string;
+    lat: number;
+    lng: number;
+}
+
+const props = defineProps<{
+    outbreaks: OutbreakPin[];
+    ownMunicipality: string | null;
+    farms: FarmPin[];
+}>();
 
 const mapEl = ref<HTMLDivElement>();
 const hoveredSlug = ref<string | null>(null);
+const hoveredFarm = ref<string | null>(null);
 let resetView = () => {};
 
 const names: Record<string, string> = {
@@ -46,6 +64,19 @@ const hoveredOutbreaks = computed(() =>
     props.outbreaks.filter((o) => o.municipality === hoveredSlug.value),
 );
 
+const severityRank: Record<Severity, number> = { low: 1, medium: 2, high: 3 };
+
+const severityBySlug = computed(() => {
+    const result: Record<string, Severity> = {};
+    for (const o of props.outbreaks) {
+        const current = result[o.municipality];
+        if (!current || severityRank[o.severity] > severityRank[current]) {
+            result[o.municipality] = o.severity;
+        }
+    }
+    return result;
+});
+
 onMounted(() => {
     const baseStyle = new Style({
         stroke: new Stroke({ color: '#374151', width: 1.5 }),
@@ -57,6 +88,27 @@ onMounted(() => {
         fill: new Fill({ color: 'rgba(59, 130, 246, 0.35)' }),
     });
 
+    const severityStyle = (fill: string) =>
+        new Style({
+            stroke: new Stroke({ color: '#374151', width: 1.5 }),
+            fill: new Fill({ color: fill }),
+        });
+
+    const severityStyles: Record<Severity, Style> = {
+        low: severityStyle('rgba(250, 204, 21, 0.5)'),
+        medium: severityStyle('rgba(249, 115, 22, 0.55)'),
+        high: severityStyle('rgba(220, 38, 38, 0.6)'),
+    };
+
+    const ownLabel = new Style({
+        text: new Text({
+            text: props.ownMunicipality ? names[props.ownMunicipality] : '',
+            font: '600 14px sans-serif',
+            fill: new Fill({ color: '#111827' }),
+            stroke: new Stroke({ color: '#ffffff', width: 3 }),
+        }),
+    });
+
     let hovered: FeatureLike | null = null;
 
     const boundaryLayer = new VectorLayer({
@@ -64,7 +116,37 @@ onMounted(() => {
             url: '/geo/bataan-municipalities.geojson',
             format: new GeoJSON(),
         }),
-        style: (feature) => (feature === hovered ? hoverStyle : baseStyle),
+        style: (feature) => {
+            const slug = feature.get('municipality') as string;
+            const severity = severityBySlug.value[slug];
+            const base =
+                feature === hovered
+                    ? hoverStyle
+                    : severity
+                      ? severityStyles[severity]
+                      : baseStyle;
+
+            return slug === props.ownMunicipality ? [base, ownLabel] : base;
+        },
+    });
+
+    const pinLayer = new VectorLayer({
+        source: new VectorSource({
+            features: props.farms.map(
+                (farm) =>
+                    new Feature({
+                        geometry: new Point(fromLonLat([farm.lng, farm.lat])),
+                        name: farm.name,
+                    }),
+            ),
+        }),
+        style: new Style({
+            image: new CircleStyle({
+                radius: 7,
+                fill: new Fill({ color: '#16a34a' }),
+                stroke: new Stroke({ color: '#ffffff', width: 2 }),
+            }),
+        }),
     });
 
     const map = new Map({
@@ -83,6 +165,7 @@ onMounted(() => {
                 updateWhileAnimating: true,
             }),
             boundaryLayer,
+            pinLayer,
         ],
         view: new View({
             center: fromLonLat([120.45, 14.65]),
@@ -113,6 +196,12 @@ onMounted(() => {
 
     map.on('pointermove', (event) => {
         if (event.dragging) return;
+
+        const pin = map.forEachFeatureAtPixel(event.pixel, (f) => f, {
+            layerFilter: (layer) => layer === pinLayer,
+        });
+        const farmName = pin?.get('name');
+        hoveredFarm.value = typeof farmName === 'string' ? farmName : null;
 
         const feature = map.forEachFeatureAtPixel(event.pixel, (f) => f, {
             layerFilter: (layer) => layer === boundaryLayer,
@@ -178,6 +267,12 @@ onMounted(() => {
                             {{ o.disease }}
                         </li>
                     </ul>
+                    <p
+                        v-if="hoveredFarm"
+                        class="mt-2 text-sm font-medium text-gray-800"
+                    >
+                        Farm: {{ hoveredFarm }}
+                    </p>
                 </div>
 
                 <button
