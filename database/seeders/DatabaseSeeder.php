@@ -17,11 +17,15 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
 
-        if (! User::where('email', 'test@example.com')->exists()) {
+        if (! app()->environment('production') && ! User::where('email', 'test@example.com')->exists()) {
             User::factory()->create([
                 'name' => 'Test User',
                 'email' => 'test@example.com',
             ]);
+        }
+
+        if (app()->environment('production') && Disease::exists()) {
+            return;
         }
 
         foreach (['Arborio', 'Basmati', 'Ipsala', 'Jasmine', 'Karacadag'] as $name) {
