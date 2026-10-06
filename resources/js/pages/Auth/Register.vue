@@ -4,6 +4,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
+import { ref } from 'vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 defineProps<{
@@ -21,6 +22,33 @@ const form = useForm({
     farm_lat: '',
     farm_long: '',
 });
+
+const locating = ref(false);
+const locationError = ref('');
+
+function useMyLocation() {
+    if (!navigator.geolocation) {
+        locationError.value = 'Location is not supported on this device.';
+        return;
+    }
+
+    locating.value = true;
+    locationError.value = '';
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            form.farm_lat = position.coords.latitude.toFixed(7);
+            form.farm_long = position.coords.longitude.toFixed(7);
+            locating.value = false;
+        },
+        () => {
+            locationError.value =
+                'Could not get your location. Enter it manually.';
+            locating.value = false;
+        },
+        { timeout: 10000, maximumAge: 60000 },
+    );
+}
 
 const submit = () => {
     form.post(route('register'), {
@@ -144,6 +172,24 @@ const submit = () => {
                     class="mt-2"
                     :message="form.errors.contact_number"
                 />
+            </div>
+
+            <div class="mt-4">
+                <button
+                    type="button"
+                    class="rounded-md bg-gray-800 px-3 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+                    :disabled="locating"
+                    @click="useMyLocation()"
+                >
+                    {{
+                        locating
+                            ? 'Getting location...'
+                            : 'Use my current location'
+                    }}
+                </button>
+                <p v-if="locationError" class="mt-2 text-sm text-red-600">
+                    {{ locationError }}
+                </p>
             </div>
 
             <div class="mt-4">

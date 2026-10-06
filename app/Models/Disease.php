@@ -12,7 +12,7 @@ class Disease extends Model
     /** @use HasFactory<DiseaseFactory> */
     use HasFactory;
 
-    protected $fillable = ['name', 'description', 'causes', 'symptoms', 'history', 'sources', 'prevention_tips'];
+    protected $fillable = ['name', 'description', 'causes', 'symptoms', 'history', 'sources', 'prevention_tips', 'image_path'];
 
     /**
      * @return HasMany<Scan, $this>

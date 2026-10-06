@@ -2,12 +2,13 @@
 
 namespace Database\Seeders;
 
+use App\Enums\TreatmentTypeEnum;
 use App\Models\Disease;
 use App\Models\RiceVariety;
 use App\Models\User;
-use App\Enums\TreatmentTypeEnum;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,10 +16,13 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        User::firstOrCreate([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+
+        if (! User::where('email', 'test@example.com')->exists()) {
+            User::factory()->create([
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+            ]);
+        }
 
         foreach (['Arborio', 'Basmati', 'Ipsala', 'Jasmine', 'Karacadag'] as $name) {
             RiceVariety::firstOrCreate(['name' => $name]);
@@ -379,6 +383,9 @@ class DatabaseSeeder extends Seeder
         foreach ($diseases as $data) {
             $treatments = $data['treatments'] ?? [];
             unset($data['treatments']);
+
+            $imagePath = 'images/'.Str::snake($data['name']).'.jpg';
+            $data['image_path'] = is_file(public_path($imagePath)) ? $imagePath : null;
 
             $disease = Disease::updateOrCreate(
                 ['name' => $data['name']],

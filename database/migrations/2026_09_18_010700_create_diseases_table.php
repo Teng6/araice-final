@@ -20,6 +20,7 @@ return new class extends Migration
             $table->text('history')->nullable();
             $table->text('sources')->nullable();
             $table->text('prevention_tips');
+            $table->string('image_path')->nullable();
             $table->timestamps();
         });
     }

@@ -22,3 +22,11 @@ export interface PageProps {
     };
     unread_alerts_count: number;
 }
+
+export interface DiseaseSummary {
+    id: number;
+    name: string;
+    description: string;
+    image_path: string | null;
+    treatments_count: number;
+}

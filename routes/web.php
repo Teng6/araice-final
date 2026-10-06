@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AlertController;
+use App\Http\Controllers\EncyclopediaController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\OutbreakController;
 use App\Http\Controllers\ProfileController;
@@ -19,6 +20,9 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
     ]);
 });
+
+Route::get('/encyclopedia', [EncyclopediaController::class, 'index'])->name('encyclopedia.index');
+Route::get('/encyclopedia/{disease}', [EncyclopediaController::class, 'show'])->name('encyclopedia.show');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');

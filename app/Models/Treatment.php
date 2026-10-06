@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Treatment extends Model
 {
-    protected $fillable = ['title', 'description', 'type'];
+    protected $fillable = ['title', 'description', 'type', 'disease_id'];
 
     protected function casts(): array
     {
