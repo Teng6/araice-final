@@ -46,4 +46,4 @@ ENV APP_ENV=production \
 
 EXPOSE 8080
 
-ENTRYPOINT ["/var/www/html/docker/start.sh"]
+ENTRYPOINT ["/bin/sh", "/var/www/html/docker/start.sh"]
