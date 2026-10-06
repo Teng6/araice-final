@@ -1,6 +1,6 @@
 # Deploying to Railway
 
-This app builds its PHP dependencies and Vue assets into a Docker image. Railway
+This app builds its PHP dependencies and Vue assets into a PHP 8.4 Docker image. Railway
 also needs a PostgreSQL database and a persistent volume for uploaded scan photos.
 
 ## 1. Create the Railway services

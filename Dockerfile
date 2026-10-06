@@ -34,7 +34,7 @@ RUN composer install \
         --no-interaction \
         --no-progress \
         --optimize-autoloader \
-    && npm ci \
+    && npm install --no-audit --no-fund \
     && npm run build \
     && php artisan storage:link \
     && mkdir -p storage/app/public storage/framework/cache storage/framework/sessions storage/framework/views bootstrap/cache \
