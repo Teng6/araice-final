@@ -27,3 +27,21 @@ export interface Disease {
     image_path: string | null;
     treatments: Treatment[];
 }
+
+export interface Scan {
+    id: number;
+    scan_type: 'leaf' | 'grain';
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    image_url: string;
+    confidence_score: number | null;
+    gps_lat: number | null;
+    gps_long: number | null;
+    scan_date: string;
+    disease: Disease | null;
+    variety: { id: number; name: string } | null;
+    farmer?: {
+        id: number;
+        full_name: string;
+        contact_number: string | null;
+    } | null;
+}

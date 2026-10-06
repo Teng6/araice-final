@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\AlertController;
 use App\Http\Controllers\Admin\DiseaseController as AdminDiseaseController;
+use App\Http\Controllers\AlertController;
 use App\Http\Controllers\EncyclopediaController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\OutbreakController;
