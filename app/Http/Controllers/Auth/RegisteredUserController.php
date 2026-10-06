@@ -30,8 +30,6 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * Handle an incoming registration request.
-     *
      * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
@@ -43,9 +41,13 @@ class RegisteredUserController extends Controller
             'barangay' => 'required|string|max:255',
             'municipality' => ['required', Rule::enum(MunicipalityEnum::class)],
             'contact_number' => 'required|string|max:20',
-            'farm_lat' => 'required|numeric|between:-90,90',
-            'farm_long' => 'required|numeric|between:-180,180',
-        ]);
+            'farm_lat' => 'required|numeric|between:14.3,14.95',
+            'farm_long' => 'required|numeric|between:120.2,120.7',
+        ],
+            [
+                'farm_lat.between' => 'Latitude must be within Bataan (between 14.3 and 14.95).',
+                'farm_long.between' => 'Longitude must be within Bataan (between 120.2 and 120.7).',
+            ]);
 
         $user = DB::transaction(function () use ($validated) {
             $user = User::create([

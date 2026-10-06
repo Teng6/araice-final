@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\DiseaseController as AdminDiseaseController;
 use App\Http\Controllers\AlertController;
+use App\Http\Controllers\EncyclopediaController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\OutbreakController;
 use App\Http\Controllers\ProfileController;
@@ -20,11 +22,19 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/encyclopedia', [EncyclopediaController::class, 'index'])->name('encyclopedia.index');
+Route::get('/encyclopedia/{disease}', [EncyclopediaController::class, 'show'])->name('encyclopedia.show');
+
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::resource('diseases', AdminDiseaseController::class)
+            ->except(['index', 'show']);
+    });
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

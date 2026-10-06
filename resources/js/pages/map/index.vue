@@ -64,6 +64,13 @@ const hoveredOutbreaks = computed(() =>
     props.outbreaks.filter((o) => o.municipality === hoveredSlug.value),
 );
 
+const isRestricted = computed(
+    () =>
+        props.ownMunicipality !== null &&
+        hoveredSlug.value !== null &&
+        hoveredSlug.value !== props.ownMunicipality,
+);
+
 const severityRank: Record<Severity, number> = { low: 1, medium: 2, high: 3 };
 
 const severityBySlug = computed(() => {
@@ -258,6 +265,13 @@ onMounted(() => {
                         class="mt-1 text-sm text-red-600"
                     >
                         {{ hoveredOutbreaks.length }} active outbreak(s)
+                    </p>
+                    <p
+                        v-else-if="isRestricted"
+                        class="mt-1 text-sm text-gray-500"
+                    >
+                        Outbreak details are only shown for your own
+                        municipality
                     </p>
                     <p v-else class="mt-1 text-sm text-gray-500">
                         No active outbreaks

@@ -145,7 +145,7 @@ class ScanController extends Controller
     {
         Gate::authorize('view', $scan);
 
-        $scan->load(['disease', 'variety']);
+        $scan->load(['disease.treatments', 'variety']);
 
         if ($request->user()->role !== UserRole::Farmer) {
             $scan->load('farmer:id,full_name,contact_number');

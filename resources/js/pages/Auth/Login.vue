@@ -76,6 +76,13 @@ const submit = () => {
 
             <div class="mt-4 flex items-center justify-end">
                 <Link
+                    :href="route('register')"
+                    class="me-auto rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+                >
+                    Register
+                </Link>
+
+                <Link
                     v-if="canResetPassword"
                     :href="route('password.request')"
                     class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
