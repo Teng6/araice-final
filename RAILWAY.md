@@ -33,6 +33,8 @@ Set these variables on the app service:
 
 After Railway generates a public domain for the app, set `APP_URL` to that full
 HTTPS URL (for example, `https://your-app.up.railway.app`) and redeploy.
+Laravel trusts Railway's forwarded HTTPS headers so Vite assets are generated
+with HTTPS URLs behind Railway's TLS proxy.
 
 The two classifier URLs are needed for scan predictions. The rest of the app can
 start without them, but scan submissions will be marked failed until the
