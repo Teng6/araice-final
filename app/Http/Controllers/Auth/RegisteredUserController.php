@@ -56,6 +56,10 @@ class RegisteredUserController extends Controller
                 'password' => Hash::make($validated['password']),
             ]);
 
+            if (! config('auth.require_email_verification')) {
+                $user->forceFill(['email_verified_at' => now()])->save();
+            }
+
             $user->farmerProfile()->create([
                 'full_name' => $validated['name'],
                 'barangay' => $validated['barangay'],
@@ -67,7 +71,9 @@ class RegisteredUserController extends Controller
 
             return $user;
         });
-        event(new Registered($user));
+        if (config('auth.require_email_verification')) {
+            event(new Registered($user));
+        }
 
         Auth::login($user);
 

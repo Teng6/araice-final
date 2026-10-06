@@ -42,7 +42,6 @@ RUN composer install \
 
 ENV APP_ENV=production \
     APP_DEBUG=false \
-    MAIL_MAILER=smtp \
     LOG_CHANNEL=stderr
 
 EXPOSE 8080

@@ -27,7 +27,10 @@ Route::get('/encyclopedia/{disease}', [EncyclopediaController::class, 'show'])->
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(array_values(array_filter([
+    'auth',
+    config('auth.require_email_verification') ? 'verified' : null,
+])))->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {

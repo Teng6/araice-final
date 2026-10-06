@@ -25,6 +25,7 @@ Set these variables on the app service:
 | `APP_ENV` | `production` |
 | `APP_DEBUG` | `false` |
 | `APP_KEY` | Generate locally with `php artisan key:generate --show`, then paste the output into Railway. |
+| `AUTH_REQUIRE_EMAIL_VERIFICATION` | `false` (lets people register without an email sender configured). |
 | `DB_CONNECTION` | `pgsql` |
 | `DB_URL` | Reference the Postgres service's `DATABASE_URL`, for example `${{Postgres.DATABASE_URL}}`. Replace `Postgres` with the actual service name if different. |
 | `FILESYSTEM_DISK` | `public` |
@@ -36,42 +37,11 @@ HTTPS URL (for example, `https://your-app.up.railway.app`) and redeploy.
 Laravel trusts Railway's forwarded HTTPS headers so Vite assets are generated
 with HTTPS URLs behind Railway's TLS proxy.
 
-## 3. Configure verification and password-reset email
-
-Laravel's registration, email verification, resend-verification, and password
-reset flows already send mail. The local `.env.example` uses the `log` mailer,
-so production needs a real SMTP provider. The Docker image selects SMTP so
-production emails are sent rather than silently written to Laravel logs.
-
-One option is [Resend SMTP](https://resend.com/docs/send-with-smtp):
-
-1. Create a Resend account, add a domain you control, and finish its DNS
-   verification. The Railway `up.railway.app` domain is not a sender domain.
-2. Create a Resend API key.
-3. Add these variables to the Railway app service:
-
-   | Variable | Value |
-   | --- | --- |
-   | `MAIL_MAILER` | `smtp` |
-   | `MAIL_SCHEME` | `smtps` |
-   | `MAIL_HOST` | `smtp.resend.com` |
-   | `MAIL_PORT` | `465` |
-   | `MAIL_USERNAME` | `resend` |
-   | `MAIL_PASSWORD` | The Resend API key (keep it secret). |
-   | `MAIL_FROM_ADDRESS` | A sender address on the verified domain, e.g. `noreply@mail.example.com`. |
-   | `MAIL_FROM_NAME` | `A-RAICE` |
-
-Save the variables and redeploy the app. Test by registering with an inbox you
-can access; use **Resend Verification Email** if needed. Also test **Forgot
-Password**. Check the Resend Emails dashboard and Railway deploy logs if a
-message does not arrive; check spam/junk too. Never use `MAIL_MAILER=log` in
-Railway.
-
 The two classifier URLs are needed for scan predictions. The rest of the app can
 start without them, but scan submissions will be marked failed until the
 corresponding APIs are configured and reachable.
 
-## 4. Deploy and check
+## 3. Deploy and check
 
 Deploy the app service. Container startup runs database migrations, seeds the
 initial disease and rice-variety catalog, and then starts Laravel on Railway's
