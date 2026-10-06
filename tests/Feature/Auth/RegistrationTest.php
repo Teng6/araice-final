@@ -1,6 +1,9 @@
 <?php
 
 use App\Enums\MunicipalityEnum;
+use App\Models\User;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Support\Facades\Notification;
 
 test('registration screen can be rendered', function () {
     $response = $this->get('/register');
@@ -9,6 +12,8 @@ test('registration screen can be rendered', function () {
 });
 
 test('new users can register', function () {
+    Notification::fake();
+
     $response = $this->post('/register', [
         'name' => 'Test User',
         'email' => 'test@example.com',
@@ -25,4 +30,8 @@ test('new users can register', function () {
     $response->assertRedirect(route('dashboard', absolute: false));
     $this->assertDatabaseHas('users', ['email' => 'test@example.com']);
     $this->assertDatabaseHas('farmer_profiles', ['contact_number' => '09123456789']);
+    Notification::assertSentTo(
+        User::where('email', 'test@example.com')->firstOrFail(),
+        VerifyEmail::class,
+    );
 });
