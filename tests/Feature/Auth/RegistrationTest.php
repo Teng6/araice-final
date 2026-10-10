@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\MunicipalityEnum;
 use App\Models\User;
 use Illuminate\Support\Facades\Notification;
 
@@ -19,10 +18,10 @@ test('new users can register', function () {
         'password' => 'password',
         'password_confirmation' => 'password',
         'barangay' => 'Test Barangay',
-        'municipality' => MunicipalityEnum::cases()[0]->value,
+        'municipality' => 'orion',
         'contact_number' => '09123456789',
-        'farm_lat' => 14.5,
-        'farm_long' => 120.5,
+        'farm_lat' => 14.6216,
+        'farm_long' => 120.5772,
     ]);
 
     $this->assertAuthenticated();

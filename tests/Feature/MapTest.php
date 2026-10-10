@@ -121,10 +121,6 @@ test('the map shows only farms with scans linked to active outbreaks for staff',
         'outbreak_id' => $resolvedOutbreak->id,
     ]);
     Scan::factory()->for($unlinkedFarm, 'farmer')->create();
-    Scan::factory()->create([
-        'farmer_id' => null,
-        'outbreak_id' => $activeOutbreak->id,
-    ]);
 
     $this->actingAs($admin)
         ->get(route('map.index'))

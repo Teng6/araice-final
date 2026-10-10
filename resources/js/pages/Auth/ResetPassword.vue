@@ -5,6 +5,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import { store as resetPassword } from '@/actions/App/Http/Controllers/Auth/NewPasswordController';
 
 const props = defineProps<{
     email: string;
@@ -19,7 +20,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('password.store'), {
+    form.post(resetPassword().url, {
         onFinish: () => {
             form.reset('password', 'password_confirmation');
         },

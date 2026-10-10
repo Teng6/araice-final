@@ -99,20 +99,7 @@ const statusClasses: Record<Scan['status'], string> = {
 
                         <div class="mt-5 divide-y divide-gray-100">
                             <div
-                                class="flex items-center justify-between gap-4 py-3"
-                            >
-                                <span class="text-sm text-gray-500">Type</span>
-                                <span
-                                    class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 capitalize"
-                                >
-                                    {{ scan.scan_type }}
-                                </span>
-                            </div>
-                            <div
-                                v-if="
-                                    scan.status === 'completed' &&
-                                    scan.scan_type === 'leaf'
-                                "
+                                v-if="scan.status === 'completed'"
                                 class="flex items-start justify-between gap-4 py-3"
                             >
                                 <span class="text-sm text-gray-500"
@@ -122,19 +109,6 @@ const statusClasses: Record<Scan['status'], string> = {
                                     class="text-right text-sm font-medium text-gray-900"
                                 >
                                     {{ scan.disease?.name ?? 'No match found' }}
-                                </span>
-                            </div>
-                            <div
-                                v-if="scan.status === 'completed'"
-                                class="flex items-center justify-between gap-4 py-3"
-                            >
-                                <span class="text-sm text-gray-500"
-                                    >Variety</span
-                                >
-                                <span
-                                    class="text-right text-sm font-medium text-gray-900"
-                                >
-                                    {{ scan.variety?.name ?? '—' }}
                                 </span>
                             </div>
                             <div
@@ -209,11 +183,7 @@ const statusClasses: Record<Scan['status'], string> = {
                     </section>
 
                     <section
-                        v-if="
-                            scan.status === 'completed' &&
-                            scan.scan_type === 'leaf' &&
-                            scan.disease
-                        "
+                        v-if="scan.status === 'completed' && scan.disease"
                         class="space-y-5 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
                     >
                         <div>

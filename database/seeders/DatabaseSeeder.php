@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Enums\TreatmentTypeEnum;
 use App\Models\Disease;
-use App\Models\RiceVariety;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -26,10 +25,6 @@ class DatabaseSeeder extends Seeder
 
         if (app()->environment('production') && Disease::exists()) {
             return;
-        }
-
-        foreach (['Arborio', 'Basmati', 'Ipsala', 'Jasmine', 'Karacadag'] as $name) {
-            RiceVariety::firstOrCreate(['name' => $name]);
         }
 
         $placeholder = 'To be filled in.';
@@ -280,7 +275,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'name' => 'Sheath Blight',
-                'description' => 'A fungal disease that causes oval, greenish-grey lesions on the leaf sheaths near the water line. The lesions spread upward and to neighboring plants, and in bad cases leaves dry out and young tillers die. It is worse in dense, heavily fertilized crops in warm, humid weather. No rice variety is fully resistant to it.',
+                'description' => 'A fungal disease that causes oval, greenish-grey lesions on the leaf sheaths near the water line. The lesions spread upward and to neighboring plants, and in bad cases leaves dry out and young tillers die. It is worse in dense, heavily fertilized crops in warm, humid weather. No rice cultivar is fully resistant to it.',
                 'causes' => 'Caused by the soil fungus Rhizoctonia solani, which survives between crops in the soil and in plant debris. The disease is favored by temperatures of 28-32 degrees C, very high humidity (85-100%) inside the crop canopy, dense planting and high nitrogen. It spreads upward through the plant and from one tiller to the next.',
                 'symptoms' => 'Oval or irregular greenish-grey spots, about 1-3 cm long, appear on the leaf sheath near the water line. As the disease advances, the spots merge, move up the plant and reach the leaves, which dry out. Severe infection can destroy young tillers.',
                 'history' => null,

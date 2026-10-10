@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Enums\MunicipalityEnum;
 use App\Enums\OutbreakStatusEnum;
 use App\Enums\ScanStatusEnum;
-use App\Enums\ScanTypeEnum;
 use App\Enums\SeverityEnum;
 use App\Enums\UserRole;
 use App\Models\FarmerProfile;
@@ -26,9 +25,7 @@ class OutbreakDetectionService
     {
         if (
             $scan->status !== ScanStatusEnum::Completed
-            || $scan->scan_type !== ScanTypeEnum::Leaf
             || $scan->disease_id === null
-            || $scan->farmer_id === null
         ) {
             return;
         }

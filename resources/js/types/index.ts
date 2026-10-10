@@ -30,7 +30,6 @@ export interface Disease {
 
 export interface Scan {
     id: number;
-    scan_type: 'leaf' | 'grain';
     status: 'pending' | 'processing' | 'completed' | 'failed';
     image_url: string;
     confidence_score: number | null;
@@ -38,7 +37,6 @@ export interface Scan {
     gps_long: number | null;
     scan_date: string;
     disease: Disease | null;
-    variety: { id: number; name: string } | null;
     farmer?: {
         id: number;
         full_name: string;

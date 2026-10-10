@@ -19,33 +19,32 @@ volumes are not shared between replicas.
 
 Set these variables on the app service:
 
-| Variable | Value |
-| --- | --- |
-| `APP_NAME` | `A-RAICE` |
-| `APP_ENV` | `production` |
-| `APP_DEBUG` | `false` |
-| `APP_KEY` | Generate locally with `php artisan key:generate --show`, then paste the output into Railway. |
-| `AUTH_REQUIRE_EMAIL_VERIFICATION` | `false` (lets people register without an email sender configured). |
-| `DB_CONNECTION` | `pgsql` |
-| `DB_URL` | Reference the Postgres service's `DATABASE_URL`, for example `${{Postgres.DATABASE_URL}}`. Replace `Postgres` with the actual service name if different. |
-| `FILESYSTEM_DISK` | `public` |
-| `VIT_API_URL` | Base URL of the leaf-disease classifier API. |
-| `GRAIN_API_URL` | Base URL of the grain classifier API. |
+| Variable                          | Value                                                                                                                                                    |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `APP_NAME`                        | `A-RAICE`                                                                                                                                                |
+| `APP_ENV`                         | `production`                                                                                                                                             |
+| `APP_DEBUG`                       | `false`                                                                                                                                                  |
+| `APP_KEY`                         | Generate locally with `php artisan key:generate --show`, then paste the output into Railway.                                                             |
+| `AUTH_REQUIRE_EMAIL_VERIFICATION` | `false` (lets people register without an email sender configured).                                                                                       |
+| `DB_CONNECTION`                   | `pgsql`                                                                                                                                                  |
+| `DB_URL`                          | Reference the Postgres service's `DATABASE_URL`, for example `${{Postgres.DATABASE_URL}}`. Replace `Postgres` with the actual service name if different. |
+| `FILESYSTEM_DISK`                 | `public`                                                                                                                                                 |
+| `VIT_API_URL`                     | Base URL of the leaf-disease classifier API.                                                                                                             |
 
 After Railway generates a public domain for the app, set `APP_URL` to that full
 HTTPS URL (for example, `https://your-app.up.railway.app`) and redeploy.
 Laravel trusts Railway's forwarded HTTPS headers so Vite assets are generated
 with HTTPS URLs behind Railway's TLS proxy.
 
-The two classifier URLs are needed for scan predictions. The rest of the app can
-start without them, but scan submissions will be marked failed until the
-corresponding APIs are configured and reachable.
+The classifier URL is needed for scan predictions. The rest of the app can
+start without it, but scan submissions will be marked failed until the API is
+configured and reachable.
 
 ## 3. Deploy and check
 
 Deploy the app service. Container startup runs database migrations, seeds the
-initial disease and rice-variety catalog, and then starts Laravel on Railway's
-assigned port. The `/up` endpoint is configured as the deployment health check.
+initial disease catalog, and then starts Laravel on Railway's assigned port.
+The `/up` endpoint is configured as the deployment health check.
 
 Production seeding does not create the development `test@example.com` account.
 It also leaves an existing disease catalog untouched on later restarts and

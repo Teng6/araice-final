@@ -9,12 +9,10 @@ import {
 
 interface Scan {
     id: number;
-    scan_type: 'leaf' | 'grain';
     status: 'pending' | 'processing' | 'completed' | 'failed';
     confidence_score: number | null;
     scan_date: string;
     disease: { id: number; name: string } | null;
-    variety: { id: number; name: string } | null;
     farmer?: {
         id: number;
         full_name: string;
@@ -89,8 +87,7 @@ const statusClasses: Record<Scan['status'], string> = {
                     No scans yet
                 </h3>
                 <p class="mx-auto mt-1 max-w-md text-sm text-gray-500">
-                    Upload a leaf or grain photo to get your first analysis
-                    result.
+                    Upload a leaf photo to get your first analysis result.
                 </p>
                 <Link
                     :href="create().url"
@@ -131,8 +128,7 @@ const statusClasses: Record<Scan['status'], string> = {
                                 >
                                     Farmer
                                 </th>
-                                <th scope="col" class="px-6 py-3">Type</th>
-                                <th scope="col" class="px-6 py-3">Result</th>
+                                <th scope="col" class="px-6 py-3">Disease</th>
                                 <th scope="col" class="px-6 py-3">
                                     Confidence
                                 </th>
@@ -173,19 +169,8 @@ const statusClasses: Record<Scan['status'], string> = {
                                         {{ scan.farmer.contact_number }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <span
-                                        class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 capitalize"
-                                    >
-                                        {{ scan.scan_type }}
-                                    </span>
-                                </td>
                                 <td class="px-6 py-4 font-medium text-gray-900">
-                                    {{
-                                        scan.scan_type === 'leaf'
-                                            ? (scan.disease?.name ?? '—')
-                                            : (scan.variety?.name ?? '—')
-                                    }}
+                                    {{ scan.disease?.name ?? '—' }}
                                 </td>
                                 <td class="px-6 py-4 text-gray-700">
                                     {{

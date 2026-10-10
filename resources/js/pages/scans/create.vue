@@ -1,16 +1,11 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue';
-import { Head, useForm, usePage } from '@inertiajs/vue3';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {
     index as scansIndex,
     store,
 } from '@/actions/App/Http/Controllers/ScanController';
-
-interface Variety {
-    id: number;
-    name: string;
-}
 
 interface Farmer {
     id: number;
@@ -19,7 +14,6 @@ interface Farmer {
 }
 
 defineProps<{
-    varieties: Variety[];
     farmers: Farmer[];
 }>();
 
@@ -33,11 +27,22 @@ let dragDepth = 0;
 
 const form = useForm({
     image: null as File | null,
-    scan_type: 'leaf',
-    variety_id: null as number | null,
     farmer_id: null as number | null,
     gps_lat: null as number | null,
     gps_long: null as number | null,
+});
+
+onMounted(() => {
+    if (!navigator.geolocation) return;
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            form.gps_lat = position.coords.latitude;
+            form.gps_long = position.coords.longitude;
+        },
+        () => {},
+        { timeout: 10000, maximumAge: 60000 },
+    );
 });
 
 function setImage(image: File | null) {
@@ -132,7 +137,7 @@ onBeforeUnmount(() => {
                             Scan photo
                         </h3>
                         <p class="mt-1 text-sm text-gray-500">
-                            Choose a clear photo of a rice leaf or grain.
+                            Choose a clear photo of a rice leaf.
                         </p>
                     </div>
 
@@ -197,63 +202,7 @@ onBeforeUnmount(() => {
                             Scan details
                         </h3>
                         <p class="mt-1 text-sm text-gray-500">
-                            Select the scan type and provide the required
-                            details.
-                        </p>
-                    </div>
-
-                    <div>
-                        <label
-                            for="scan_type"
-                            class="block text-sm font-medium text-gray-700"
-                        >
-                            Scan type
-                        </label>
-                        <select
-                            id="scan_type"
-                            v-model="form.scan_type"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
-                        >
-                            <option value="leaf">Leaf disease</option>
-                            <option value="grain">Grain variety</option>
-                        </select>
-                        <p
-                            v-if="form.errors.scan_type"
-                            class="mt-1 text-sm text-red-600"
-                        >
-                            {{ form.errors.scan_type }}
-                        </p>
-                    </div>
-
-                    <div v-if="form.scan_type === 'leaf'">
-                        <label
-                            for="variety_id"
-                            class="block text-sm font-medium text-gray-700"
-                        >
-                            Rice variety
-                            <span class="font-normal text-gray-500">
-                                (optional)
-                            </span>
-                        </label>
-                        <select
-                            id="variety_id"
-                            v-model="form.variety_id"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
-                        >
-                            <option :value="null">Not specified</option>
-                            <option
-                                v-for="variety in varieties"
-                                :key="variety.id"
-                                :value="variety.id"
-                            >
-                                {{ variety.name }}
-                            </option>
-                        </select>
-                        <p
-                            v-if="form.errors.variety_id"
-                            class="mt-1 text-sm text-red-600"
-                        >
-                            {{ form.errors.variety_id }}
+                            Upload a leaf photo and select the farmer.
                         </p>
                     </div>
 
@@ -289,51 +238,6 @@ onBeforeUnmount(() => {
                             >
                                 {{ form.errors.farmer_id }}
                             </p>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label
-                                    for="gps_lat"
-                                    class="block text-sm font-medium text-gray-700"
-                                >
-                                    Latitude
-                                </label>
-                                <input
-                                    id="gps_lat"
-                                    v-model="form.gps_lat"
-                                    type="number"
-                                    step="any"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
-                                />
-                                <p
-                                    v-if="form.errors.gps_lat"
-                                    class="mt-1 text-sm text-red-600"
-                                >
-                                    {{ form.errors.gps_lat }}
-                                </p>
-                            </div>
-                            <div>
-                                <label
-                                    for="gps_long"
-                                    class="block text-sm font-medium text-gray-700"
-                                >
-                                    Longitude
-                                </label>
-                                <input
-                                    id="gps_long"
-                                    v-model="form.gps_long"
-                                    type="number"
-                                    step="any"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
-                                />
-                                <p
-                                    v-if="form.errors.gps_long"
-                                    class="mt-1 text-sm text-red-600"
-                                >
-                                    {{ form.errors.gps_long }}
-                                </p>
-                            </div>
                         </div>
                     </template>
 
