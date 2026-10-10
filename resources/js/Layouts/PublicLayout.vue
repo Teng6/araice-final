@@ -14,12 +14,6 @@ const user = computed(() => page.props.auth.user);
             >
                 <div class="flex items-center gap-6">
                     <Link href="/" class="text-lg font-bold">A-RAICE</Link>
-                    <Link
-                        href="/encyclopedia"
-                        class="text-gray-600 hover:text-gray-900"
-                    >
-                        Encyclopedia
-                    </Link>
                 </div>
 
                 <div class="flex items-center gap-4">

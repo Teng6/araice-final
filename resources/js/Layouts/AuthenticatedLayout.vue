@@ -8,6 +8,7 @@ import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { dashboard } from '@/routes';
 import { index as alertsIndex } from '@/actions/App/Http/Controllers/AlertController';
+import { index as encyclopediaIndex } from '@/actions/App/Http/Controllers/EncyclopediaController';
 import { index as mapIndex } from '@/actions/App/Http/Controllers/MapController';
 import { index as outbreaksIndex } from '@/actions/App/Http/Controllers/OutbreakController';
 import { edit as profileEdit } from '@/actions/App/Http/Controllers/ProfileController';
@@ -112,6 +113,12 @@ function isCurrent(path: string, includeChildren = false): boolean {
                                     :active="isCurrent(mapIndex().url)"
                                 >
                                     Map
+                                </NavLink>
+                                <NavLink
+                                    :href="encyclopediaIndex().url"
+                                    :active="isCurrent(encyclopediaIndex().url)"
+                                >
+                                    Encyclopedia
                                 </NavLink>
                             </div>
                         </div>
@@ -249,6 +256,12 @@ function isCurrent(path: string, includeChildren = false): boolean {
                             :active="isCurrent(mapIndex().url)"
                         >
                             Map
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="encyclopediaIndex().url"
+                            :active="isCurrent(encyclopediaIndex().url)"
+                        >
+                            Encyclopedia
                         </ResponsiveNavLink>
                     </div>
 
