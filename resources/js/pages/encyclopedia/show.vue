@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import PublicLayout from '@/Layouts/PublicLayout.vue';
+import EncyclopediaLayout from '@/Layouts/EncyclopediaLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { index } from '@/actions/App/Http/Controllers/EncyclopediaController';
 import type { Disease } from '@/types';
@@ -12,7 +12,7 @@ defineProps<{
 <template>
     <Head :title="disease.name" />
 
-    <PublicLayout>
+    <EncyclopediaLayout>
         <div class="mx-auto max-w-3xl px-4 py-8">
             <Link :href="index()" class="text-sm text-gray-600 hover:underline"
                 >← Back to encyclopedia</Link
@@ -80,5 +80,5 @@ defineProps<{
                 </p>
             </section>
         </div>
-    </PublicLayout>
+    </EncyclopediaLayout>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import PublicLayout from '@/Layouts/PublicLayout.vue';
+import EncyclopediaLayout from '@/Layouts/EncyclopediaLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { show } from '@/actions/App/Http/Controllers/EncyclopediaController';
 import type { DiseaseSummary } from '@/types';
@@ -12,7 +12,7 @@ defineProps<{
 <template>
     <Head title="Encyclopedia" />
 
-    <PublicLayout>
+    <EncyclopediaLayout>
         <div class="mx-auto max-w-6xl px-4 py-8">
             <h1 class="text-2xl font-semibold">Rice Disease Encyclopedia</h1>
 
@@ -61,7 +61,7 @@ defineProps<{
                 </Link>
             </div>
         </div>
-    </PublicLayout>
+    </EncyclopediaLayout>
 </template>
 
 <style scoped>
