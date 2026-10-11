@@ -209,9 +209,33 @@
                     "script": {
                         "type": "text/javascript",
                         "exec": [
-                            "var alert = (pm.response.json().data || []).find(function (item) { return item.disease === 'API Smoke Test Disease' && item.municipality === 'balanga' && item.read_at === null; });",
-                            "pm.test('farmer sees seeded unread alert', function () { pm.response.to.have.status(200); pm.expect(alert).to.exist; });",
-                            "if (alert) pm.collectionVariables.set('farmerAlertId', alert.id);"
+                            "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                            "",
+                            "const json = pm.response.json();",
+                            "",
+                            "pm.test('paginated shape', () => {",
+                            "  pm.expect(json.data).to.be.an('array');",
+                            "  pm.expect(json).to.have.property('current_page');",
+                            "  pm.expect(json).to.have.property('total');",
+                            "});",
+                            "",
+                            "pm.test('all returned alerts are unread', () => {",
+                            "  json.data.forEach((a) => pm.expect(a.read_at).to.be.null);",
+                            "});",
+                            "",
+                            "const seeded = json.data.find((a) => a.disease === 'API Smoke Test Disease');",
+                            "",
+                            "pm.test('seeded outbreak alert is present', () => {",
+                            "  pm.expect(seeded, 'seeded alert').to.exist;",
+                            "});",
+                            "",
+                            "pm.test('alert has expected fields', () => {",
+                            "  ['id', 'message', 'severity', 'disease', 'municipality', 'outbreak_id', 'created_at', 'read_at']",
+                            "    .forEach((k) => pm.expect(seeded).to.have.property(k));",
+                            "  pm.expect(seeded.severity).to.be.oneOf(['low', 'medium', 'high']);",
+                            "});",
+                            "",
+                            "if (seeded) pm.collectionVariables.set('farmerAlertId', seeded.id);"
                         ]
                     }
                 }
@@ -240,8 +264,19 @@
                     "script": {
                         "type": "text/javascript",
                         "exec": [
-                            "pm.test('farmer marks alert read', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().read_at).to.exist; });",
-                            "if (pm.response.code === 200) pm.collectionVariables.set('firstAlertReadAt', pm.response.json().read_at);"
+                            "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                            "",
+                            "const alert = pm.response.json();",
+                            "",
+                            "pm.test('returns the same alert', () => {",
+                            "  pm.expect(alert.id).to.eql(Number(pm.collectionVariables.get('farmerAlertId')));",
+                            "});",
+                            "",
+                            "pm.test('read_at is now set', () => {",
+                            "  pm.expect(alert.read_at).to.be.a('string').and.not.empty;",
+                            "});",
+                            "",
+                            "pm.collectionVariables.set('firstAlertReadAt', alert.read_at);"
                         ]
                     }
                 }
@@ -270,7 +305,17 @@
                     "script": {
                         "type": "text/javascript",
                         "exec": [
-                            "pm.test('re-reading is idempotent', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().read_at).to.eql(pm.collectionVariables.get('firstAlertReadAt')); });"
+                            "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                            "",
+                            "const alert = pm.response.json();",
+                            "",
+                            "pm.test('still the same alert', () => {",
+                            "  pm.expect(alert.id).to.eql(Number(pm.collectionVariables.get('farmerAlertId')));",
+                            "});",
+                            "",
+                            "pm.test('idempotent: read_at keeps the first timestamp', () => {",
+                            "  pm.expect(alert.read_at).to.eql(pm.collectionVariables.get('firstAlertReadAt'));",
+                            "});"
                         ]
                     }
                 }
@@ -300,7 +345,14 @@
                     "script": {
                         "type": "text/javascript",
                         "exec": [
-                            "pm.test('read alert is excluded from unread list', function () { pm.response.to.have.status(200); pm.expect((pm.response.json().data || []).some(function (alert) { return alert.id == pm.collectionVariables.get('farmerAlertId'); })).to.eql(false); });"
+                            "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                            "",
+                            "const json = pm.response.json();",
+                            "const id = Number(pm.collectionVariables.get('farmerAlertId'));",
+                            "",
+                            "pm.test('read alert no longer in unread list', () => {",
+                            "  pm.expect(json.data.find((a) => a.id === id)).to.be.undefined;",
+                            "});"
                         ]
                     }
                 }
@@ -376,7 +428,7 @@
                     "script": {
                         "type": "text/javascript",
                         "exec": [
-                            "pm.test('unauthenticated alert list returns 401', function () { pm.response.to.have.status(401); });"
+                            "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"
                         ]
                     }
                 }
@@ -497,7 +549,14 @@
                     "script": {
                         "type": "text/javascript",
                         "exec": [
-                            "pm.test('farmer2 does not see farmer1 alert', function () { pm.response.to.have.status(200); pm.expect((pm.response.json().data || []).some(function (alert) { return alert.id == pm.collectionVariables.get('farmerAlertId'); })).to.eql(false); });"
+                            "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                            "",
+                            "const json = pm.response.json();",
+                            "const id = Number(pm.collectionVariables.get('farmerAlertId'));",
+                            "",
+                            "pm.test(\"farmer2 cannot see farmer1's alert\", () => {",
+                            "  pm.expect(json.data.find((a) => a.id === id)).to.be.undefined;",
+                            "});"
                         ]
                     }
                 }
@@ -526,7 +585,7 @@
                     "script": {
                         "type": "text/javascript",
                         "exec": [
-                            "pm.test('non-recipient receives 404', function () { pm.response.to.have.status(404); });"
+                            "pm.test('404 Not Found', () => pm.response.to.have.status(404));"
                         ]
                     }
                 }
@@ -671,7 +730,18 @@
                     "script": {
                         "type": "text/javascript",
                         "exec": [
-                            "pm.test('LGU sees seeded outbreak alert', function () { pm.response.to.have.status(200); pm.expect((pm.response.json().data || []).some(function (alert) { return alert.id == pm.collectionVariables.get('farmerAlertId'); })).to.eql(true); });"
+                            "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                            "",
+                            "const json = pm.response.json();",
+                            "",
+                            "pm.test('paginated shape', () => {",
+                            "  pm.expect(json.data).to.be.an('array');",
+                            "  pm.expect(json).to.have.property('total');",
+                            "});",
+                            "",
+                            "pm.test('includes the seeded outbreak alert', () => {",
+                            "  pm.expect(json.data.some((a) => a.disease === 'API Smoke Test Disease')).to.be.true;",
+                            "});"
                         ]
                     }
                 }
@@ -807,7 +877,18 @@
                     "script": {
                         "type": "text/javascript",
                         "exec": [
-                            "pm.test('admin sees seeded outbreak alert', function () { pm.response.to.have.status(200); pm.expect((pm.response.json().data || []).some(function (alert) { return alert.id == pm.collectionVariables.get('farmerAlertId'); })).to.eql(true); });"
+                            "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                            "",
+                            "const json = pm.response.json();",
+                            "",
+                            "pm.test('paginated shape', () => {",
+                            "  pm.expect(json.data).to.be.an('array');",
+                            "  pm.expect(json).to.have.property('total');",
+                            "});",
+                            "",
+                            "pm.test('includes the seeded outbreak alert', () => {",
+                            "  pm.expect(json.data.some((a) => a.disease === 'API Smoke Test Disease')).to.be.true;",
+                            "});"
                         ]
                     }
                 }
