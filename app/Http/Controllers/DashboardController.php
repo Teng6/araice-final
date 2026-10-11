@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Enums\OutbreakStatusEnum;
 use App\Enums\UserRole;
+use App\Models\Disease;
 use App\Models\Outbreak;
 use App\Models\Scan;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -38,7 +40,7 @@ class DashboardController extends Controller
                     'farmer_name' => $scan->farmer?->full_name,
                 ]);
 
-            return Inertia::render('Dashboard', [
+            $props = [
                 'stats' => [
                     'active_outbreaks' => Outbreak::query()
                         ->where('status', OutbreakStatusEnum::Active)
@@ -48,7 +50,16 @@ class DashboardController extends Controller
                         ->count(),
                 ],
                 'recent_scans' => $recentScans,
-            ]);
+            ];
+
+            if ($user->role === UserRole::Admin) {
+                $props['admin_stats'] = [
+                    'users_count' => User::count(),
+                    'diseases_count' => Disease::count(),
+                ];
+            }
+
+            return Inertia::render('Dashboard', $props);
         }
 
         $farmerProfile = $user->farmerProfile;

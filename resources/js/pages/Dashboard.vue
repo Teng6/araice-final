@@ -3,10 +3,12 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import DashboardRecentScans from '@/Components/DashboardRecentScans.vue';
 import { index as alertsIndex } from '@/actions/App/Http/Controllers/AlertController';
+import { index as encyclopediaIndex } from '@/actions/App/Http/Controllers/EncyclopediaController';
 import { index as outbreaksIndex } from '@/actions/App/Http/Controllers/OutbreakController';
 import { index as reportsIndex } from '@/actions/App/Http/Controllers/ReportController';
 import { create as scansCreate } from '@/actions/App/Http/Controllers/ScanController';
 import type {
+    AdminStats,
     ActiveOutbreak,
     DashboardStats,
     RecentScan,
@@ -16,6 +18,7 @@ import type {
 const props = defineProps<{
     scans_count?: number;
     stats?: DashboardStats;
+    admin_stats?: AdminStats;
     recent_scans?: (RecentScan | StaffRecentScan)[];
     active_outbreak?: ActiveOutbreak | null;
 }>();
@@ -194,6 +197,34 @@ const severityClasses: Record<ActiveOutbreak['severity'], string> = {
                         View alerts
                     </span>
                 </Link>
+
+                <template v-if="props.admin_stats !== undefined">
+                    <article
+                        class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+                    >
+                        <p class="text-sm font-medium text-gray-500">
+                            Total users
+                        </p>
+                        <p class="mt-2 text-3xl font-semibold text-gray-900">
+                            {{ props.admin_stats.users_count }}
+                        </p>
+                    </article>
+
+                    <Link
+                        :href="encyclopediaIndex().url"
+                        class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition hover:border-emerald-300 hover:shadow-md"
+                    >
+                        <p class="text-sm font-medium text-gray-500">
+                            Diseases
+                        </p>
+                        <p class="mt-2 text-3xl font-semibold text-emerald-700">
+                            {{ props.admin_stats.diseases_count }}
+                        </p>
+                        <span class="mt-2 block text-sm text-emerald-700">
+                            View encyclopedia
+                        </span>
+                    </Link>
+                </template>
             </section>
 
             <DashboardRecentScans :scans="props.recent_scans ?? []" />

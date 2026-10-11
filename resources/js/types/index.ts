@@ -17,6 +17,11 @@ export type DashboardStats = {
     scans_last_7_days: number;
 };
 
+export type AdminStats = {
+    users_count: number;
+    diseases_count: number;
+};
+
 export type ActiveOutbreak = {
     disease: string;
     severity: 'low' | 'medium' | 'high';
