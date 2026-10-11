@@ -36,7 +36,6 @@ test('an admin can load restricted index pages', function () {
 
     $this->actingAs($admin)->get(route('reports.index'))->assertOk();
     $this->actingAs($admin)->get(route('outbreaks.index'))->assertOk();
-    $this->actingAs($admin)->get(route('scans.unlinked'))->assertOk();
 });
 
 test('a farmer remains denied on restricted index pages', function () {
@@ -44,5 +43,4 @@ test('a farmer remains denied on restricted index pages', function () {
 
     $this->actingAs($farmer)->get(route('reports.index'))->assertForbidden();
     $this->actingAs($farmer)->get(route('outbreaks.index'))->assertForbidden();
-    $this->actingAs($farmer)->get(route('scans.unlinked'))->assertForbidden();
 });

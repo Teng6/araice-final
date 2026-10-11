@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, router } from '@inertiajs/vue3';
+import { close as closeOutbreak } from '@/actions/App/Http/Controllers/OutbreakController';
 
 interface OutbreakRow {
     id: number;
@@ -33,7 +34,7 @@ function close(id: number): void {
         return;
     }
 
-    router.patch(route('outbreaks.close', id), {}, { preserveScroll: true });
+    router.patch(closeOutbreak(id).url, {}, { preserveScroll: true });
 }
 </script>
 

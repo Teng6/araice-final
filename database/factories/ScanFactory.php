@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Enums\ScanStatusEnum;
-use App\Enums\ScanTypeEnum;
 use App\Models\Disease;
 use App\Models\FarmerProfile;
 use App\Models\Scan;
@@ -25,7 +24,6 @@ class ScanFactory extends Factory
         return [
             'farmer_id' => FarmerProfile::factory(),
             'uploaded_by_id' => User::factory(),
-            'scan_type' => ScanTypeEnum::Leaf,
             'disease_id' => Disease::factory(),
             'image_url' => 'scans/test.jpg',
             'confidence_score' => 0.95,

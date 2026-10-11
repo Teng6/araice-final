@@ -5,9 +5,32 @@ import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { dashboard } from '@/routes';
+import { index as alertsIndex } from '@/actions/App/Http/Controllers/AlertController';
+import { index as encyclopediaIndex } from '@/actions/App/Http/Controllers/EncyclopediaController';
+import { index as mapIndex } from '@/actions/App/Http/Controllers/MapController';
+import { index as outbreaksIndex } from '@/actions/App/Http/Controllers/OutbreakController';
+import { edit as profileEdit } from '@/actions/App/Http/Controllers/ProfileController';
+import { index as reportsIndex } from '@/actions/App/Http/Controllers/ReportController';
+import {
+    create as scansCreate,
+    index as scansIndex,
+} from '@/actions/App/Http/Controllers/ScanController';
+import { destroy as logout } from '@/actions/App/Http/Controllers/Auth/AuthenticatedSessionController';
 
 const showingNavigationDropdown = ref(false);
+const page = usePage();
+
+function isCurrent(path: string, includeChildren = false): boolean {
+    const currentPath =
+        page.url.replace(/[?#].*$/, '').replace(/\/+$/, '') || '/';
+    const targetPath = path.replace(/[?#].*$/, '').replace(/\/+$/, '') || '/';
+
+    return includeChildren
+        ? currentPath === targetPath || currentPath.startsWith(`${targetPath}/`)
+        : currentPath === targetPath;
+}
 </script>
 
 <template>
@@ -20,7 +43,7 @@ const showingNavigationDropdown = ref(false);
                         <div class="flex">
                             <!-- Logo -->
                             <div class="flex shrink-0 items-center">
-                                <Link :href="route('dashboard')">
+                                <Link :href="dashboard().url">
                                     <ApplicationLogo
                                         class="block h-9 w-auto fill-current text-gray-800"
                                     />
@@ -32,20 +55,20 @@ const showingNavigationDropdown = ref(false);
                                 class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex"
                             >
                                 <NavLink
-                                    :href="route('dashboard')"
-                                    :active="route().current('dashboard')"
+                                    :href="dashboard().url"
+                                    :active="isCurrent(dashboard().url)"
                                 >
                                     Dashboard
                                 </NavLink>
                                 <NavLink
-                                    :href="route('scans.index')"
-                                    :active="route().current('scans.index')"
+                                    :href="scansIndex().url"
+                                    :active="isCurrent(scansIndex().url)"
                                 >
                                     Scans
                                 </NavLink>
                                 <NavLink
-                                    :href="route('scans.create')"
-                                    :active="route().current('scans.create')"
+                                    :href="scansCreate().url"
+                                    :active="isCurrent(scansCreate().url)"
                                 >
                                     New Scan
                                 </NavLink>
@@ -53,17 +76,10 @@ const showingNavigationDropdown = ref(false);
                                     v-if="
                                         $page.props.auth.user.role !== 'farmer'
                                     "
-                                    :href="route('scans.unlinked')"
-                                    :active="route().current('scans.unlinked')"
-                                >
-                                    Unlinked scans
-                                </NavLink>
-                                <NavLink
-                                    v-if="
-                                        $page.props.auth.user.role !== 'farmer'
+                                    :href="reportsIndex().url"
+                                    :active="
+                                        isCurrent(reportsIndex().url, true)
                                     "
-                                    :href="route('reports.index')"
-                                    :active="route().current('reports.*')"
                                 >
                                     Reports
                                 </NavLink>
@@ -71,14 +87,16 @@ const showingNavigationDropdown = ref(false);
                                     v-if="
                                         $page.props.auth.user.role !== 'farmer'
                                     "
-                                    :href="route('outbreaks.index')"
-                                    :active="route().current('outbreaks.*')"
+                                    :href="outbreaksIndex().url"
+                                    :active="
+                                        isCurrent(outbreaksIndex().url, true)
+                                    "
                                 >
                                     Outbreaks
                                 </NavLink>
                                 <NavLink
-                                    :href="route('alerts.index')"
-                                    :active="route().current('alerts.*')"
+                                    :href="alertsIndex().url"
+                                    :active="isCurrent(alertsIndex().url, true)"
                                 >
                                     Alerts
                                     <span
@@ -91,10 +109,16 @@ const showingNavigationDropdown = ref(false);
                                     </span>
                                 </NavLink>
                                 <NavLink
-                                    :href="route('map.index')"
-                                    :active="route().current('map.index')"
+                                    :href="mapIndex().url"
+                                    :active="isCurrent(mapIndex().url)"
                                 >
                                     Map
+                                </NavLink>
+                                <NavLink
+                                    :href="encyclopediaIndex().url"
+                                    :active="isCurrent(encyclopediaIndex().url)"
+                                >
+                                    Encyclopedia
                                 </NavLink>
                             </div>
                         </div>
@@ -128,13 +152,11 @@ const showingNavigationDropdown = ref(false);
                                     </template>
 
                                     <template #content>
-                                        <DropdownLink
-                                            :href="route('profile.edit')"
-                                        >
+                                        <DropdownLink :href="profileEdit().url">
                                             Profile
                                         </DropdownLink>
                                         <DropdownLink
-                                            :href="route('logout')"
+                                            :href="logout().url"
                                             method="post"
                                             as="button"
                                         >
@@ -198,49 +220,48 @@ const showingNavigationDropdown = ref(false);
                 >
                     <div class="space-y-1 pt-2 pb-3">
                         <ResponsiveNavLink
-                            :href="route('dashboard')"
-                            :active="route().current('dashboard')"
+                            :href="dashboard().url"
+                            :active="isCurrent(dashboard().url)"
                         >
                             Dashboard
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
-                            :href="route('scans.index')"
-                            :active="route().current('scans.index')"
+                            :href="scansIndex().url"
+                            :active="isCurrent(scansIndex().url)"
                         >
                             Scans
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
-                            :href="route('scans.create')"
-                            :active="route().current('scans.create')"
+                            :href="scansCreate().url"
+                            :active="isCurrent(scansCreate().url)"
                         >
                             New Scan
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             v-if="$page.props.auth.user.role !== 'farmer'"
-                            :href="route('scans.unlinked')"
-                            :active="route().current('scans.unlinked')"
-                        >
-                            Unlinked scans
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            v-if="$page.props.auth.user.role !== 'farmer'"
-                            :href="route('reports.index')"
-                            :active="route().current('reports.*')"
+                            :href="reportsIndex().url"
+                            :active="isCurrent(reportsIndex().url, true)"
                         >
                             Reports
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             v-if="$page.props.auth.user.role !== 'farmer'"
-                            :href="route('outbreaks.index')"
-                            :active="route().current('outbreaks.*')"
+                            :href="outbreaksIndex().url"
+                            :active="isCurrent(outbreaksIndex().url, true)"
                         >
                             Outbreaks
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
-                            :href="route('map.index')"
-                            :active="route().current('map.index')"
+                            :href="mapIndex().url"
+                            :active="isCurrent(mapIndex().url)"
                         >
                             Map
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="encyclopediaIndex().url"
+                            :active="isCurrent(encyclopediaIndex().url)"
+                        >
+                            Encyclopedia
                         </ResponsiveNavLink>
                     </div>
 
@@ -256,11 +277,11 @@ const showingNavigationDropdown = ref(false);
                         </div>
 
                         <div class="mt-3 space-y-1">
-                            <ResponsiveNavLink :href="route('profile.edit')">
+                            <ResponsiveNavLink :href="profileEdit().url">
                                 Profile
                             </ResponsiveNavLink>
                             <ResponsiveNavLink
-                                :href="route('logout')"
+                                :href="logout().url"
                                 method="post"
                                 as="button"
                             >

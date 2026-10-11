@@ -3,19 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ScanStatusEnum;
-use App\Enums\ScanTypeEnum;
 use App\Enums\UserRole;
 use App\Models\FarmerProfile;
-use App\Models\RiceVariety;
 use App\Models\Scan;
-use App\Services\GrainClassifierService;
 use App\Services\OutbreakDetectionService;
 use App\Services\ViTService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -27,7 +23,6 @@ class ScanController extends Controller
         Gate::authorize('create', Scan::class);
 
         return Inertia::render('scans/create', [
-            'varieties' => RiceVariety::orderBy('name')->get(['id', 'name']),
             'farmers' => $request->user()->role === UserRole::LguStaff
                 ? FarmerProfile::orderBy('full_name')->get(['id', 'full_name', 'barangay'])
                 : [],
@@ -40,7 +35,7 @@ class ScanController extends Controller
 
         $user = $request->user();
 
-        $query = Scan::with(['disease:id,name', 'variety:id,name'])->latest();
+        $query = Scan::with('disease:id,name')->latest();
 
         if ($user->role === UserRole::Farmer) {
             $profileId = $user->farmerProfile?->id;
@@ -56,10 +51,10 @@ class ScanController extends Controller
         ]);
     }
 
-    public function store(Request $request, ViTService $vit, GrainClassifierService $grain, OutbreakDetectionService $outbreaks): RedirectResponse
+    public function store(Request $request, ViTService $vit, OutbreakDetectionService $outbreaks): RedirectResponse
     {
 
-        set_time_limit(120);
+        set_time_limit(180);
 
         Gate::authorize('create', Scan::class);
 
@@ -68,30 +63,22 @@ class ScanController extends Controller
 
         $rules = [
             'image' => ['required', 'image', 'max:5120'],
-            'scan_type' => ['required', Rule::enum(ScanTypeEnum::class)],
-            'variety_id' => ['nullable', 'exists:rice_varieties,id'],
+            'gps_lat' => ['nullable', 'numeric', 'between:-90,90'],
+            'gps_long' => ['nullable', 'numeric', 'between:-180,180'],
         ];
 
         if ($isLgu) {
             $rules['farmer_id'] = ['required', 'exists:farmer_profiles,id'];
-            $rules['gps_lat'] = ['required', 'numeric'];
-            $rules['gps_long'] = ['required', 'numeric'];
         }
 
         $validated = $request->validate($rules);
 
-        if ($isLgu) {
-            $farmerId = $validated['farmer_id'];
-            $gpsLat = $validated['gps_lat'];
-            $gpsLong = $validated['gps_long'];
-        } else {
-            $profile = $user->farmerProfile;
-            $farmerId = $profile->id;
-            $gpsLat = $profile->farm_lat;
-            $gpsLong = $profile->farm_long;
-        }
-
-        $isLeaf = $validated['scan_type'] === ScanTypeEnum::Leaf->value;
+        $profile = $isLgu
+            ? FarmerProfile::findOrFail((int) $validated['farmer_id'])
+            : $user->farmerProfile;
+        $farmerId = $profile->id;
+        $gpsLat = $validated['gps_lat'] ?? $profile->farm_lat;
+        $gpsLong = $validated['gps_long'] ?? $profile->farm_long;
 
         $path = $request->file('image')->store('scans', 'public');
         abort_unless(is_string($path), 500, 'Failed to store image.');
@@ -99,8 +86,6 @@ class ScanController extends Controller
         $scan = Scan::create([
             'farmer_id' => $farmerId,
             'uploaded_by_id' => $user->id,
-            'scan_type' => $validated['scan_type'],
-            'variety_id' => $isLeaf ? ($validated['variety_id'] ?? null) : null,
             'image_url' => $path,
             'status' => ScanStatusEnum::Processing,
             'gps_lat' => $gpsLat,
@@ -109,18 +94,10 @@ class ScanController extends Controller
 
         try {
             $fullPath = Storage::disk('public')->path($path);
-            $attributes = [];
-
-            if ($isLeaf) {
-                $result = $vit->predict($fullPath);
-                $attributes['disease_id'] = $result['disease']?->id;
-            } else {
-                $result = $grain->classify($fullPath);
-                $attributes['variety_id'] = $result['variety']?->id;
-            }
+            $result = $vit->predict($fullPath);
 
             $scan->fill([
-                ...$attributes,
+                'disease_id' => $result['disease']?->id,
                 'confidence_score' => $result['confidence'],
                 'raw_predictions' => $result['raw'],
                 'status' => ScanStatusEnum::Completed,
@@ -145,7 +122,7 @@ class ScanController extends Controller
     {
         Gate::authorize('view', $scan);
 
-        $scan->load(['disease.treatments', 'variety']);
+        $scan->load('disease.treatments');
 
         if ($request->user()->role !== UserRole::Farmer) {
             $scan->load('farmer:id,full_name,contact_number');

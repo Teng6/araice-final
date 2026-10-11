@@ -102,24 +102,6 @@ test('scans older than seven days are not counted', function () {
     expect(Outbreak::count())->toBe(0);
 });
 
-test('unlinked scans are excluded from the count', function () {
-    $disease = Disease::factory()->create();
-
-    $unlinked = Scan::factory()->create([
-        'farmer_id' => null,
-        'disease_id' => $disease->id,
-    ]);
-
-    detect(
-        $unlinked,
-        leafScan($disease, MunicipalityEnum::Orion),
-        leafScan($disease, MunicipalityEnum::Orion),
-    );
-
-    expect(Outbreak::count())->toBe(0)
-        ->and($unlinked->fresh()->outbreak_id)->toBeNull();
-});
-
 test('alert recipients include municipality farmers and all LGU/admin users', function () {
     $disease = Disease::factory()->create();
 

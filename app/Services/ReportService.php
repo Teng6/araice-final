@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Enums\ScanStatusEnum;
-use App\Enums\ScanTypeEnum;
 use App\Models\Disease;
 use App\Models\Scan;
 use Carbon\CarbonImmutable;
@@ -25,7 +24,6 @@ class ReportService
             ->when($diseaseId, fn ($query) => $query->where('disease_id', $diseaseId));
 
         $counts = $scans->clone()
-            ->where('scan_type', ScanTypeEnum::Leaf)
             ->whereNotNull('disease_id')
             ->selectRaw('disease_id, count(*) as total')
             ->groupBy('disease_id')

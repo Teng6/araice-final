@@ -46,7 +46,6 @@ test('the third distinct farmer scan through the endpoint fires an outbreak', fu
     $this->actingAs($third->user)
         ->post(route('scans.store'), [
             'image' => UploadedFile::fake()->create('leaf.jpg', 100, 'image/jpeg'),
-            'scan_type' => 'leaf',
         ])
         ->assertRedirect();
 
@@ -78,7 +77,6 @@ test('a failed AI call saves the scan as failed and does not touch outbreaks', f
     $this->actingAs($third->user)
         ->post(route('scans.store'), [
             'image' => UploadedFile::fake()->create('leaf.jpg', 100, 'image/jpeg'),
-            'scan_type' => 'leaf',
         ])
         ->assertRedirect();
 

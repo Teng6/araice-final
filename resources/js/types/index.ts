@@ -1,5 +1,33 @@
 export * from './auth';
 
+export type RecentScan = {
+    id: number;
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    confidence_score: string | null;
+    scan_date: string;
+    disease: string | null;
+};
+
+export type StaffRecentScan = RecentScan & {
+    farmer_name: string | null;
+};
+
+export type DashboardStats = {
+    active_outbreaks: number;
+    scans_last_7_days: number;
+};
+
+export type AdminStats = {
+    users_count: number;
+    diseases_count: number;
+};
+
+export type ActiveOutbreak = {
+    disease: string;
+    severity: 'low' | 'medium' | 'high';
+    started_at: string | null;
+};
+
 export type DiseaseSummary = {
     id: number;
     name: string;
@@ -8,11 +36,14 @@ export type DiseaseSummary = {
     treatments_count: number;
 };
 
+export type TreatmentType = 'chemical' | 'biological' | 'cultural' | 'organic';
+
 export interface Treatment {
     id: number;
+    disease_id: number;
     title: string;
     description: string;
-    type: string;
+    type: TreatmentType;
 }
 
 export interface Disease {
@@ -30,7 +61,6 @@ export interface Disease {
 
 export interface Scan {
     id: number;
-    scan_type: 'leaf' | 'grain';
     status: 'pending' | 'processing' | 'completed' | 'failed';
     image_url: string;
     confidence_score: number | null;
@@ -38,7 +68,6 @@ export interface Scan {
     gps_long: number | null;
     scan_date: string;
     disease: Disease | null;
-    variety: { id: number; name: string } | null;
     farmer?: {
         id: number;
         full_name: string;

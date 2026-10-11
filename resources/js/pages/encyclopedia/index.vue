@@ -1,20 +1,36 @@
 <script setup lang="ts">
-import PublicLayout from '@/Layouts/PublicLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import EncyclopediaLayout from '@/Layouts/EncyclopediaLayout.vue';
+import { create as createDisease } from '@/actions/App/Http/Controllers/Admin/DiseaseController';
 import { show } from '@/actions/App/Http/Controllers/EncyclopediaController';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import type { DiseaseSummary } from '@/types';
 
 defineProps<{
     diseases: DiseaseSummary[];
 }>();
+
+const page = usePage();
+const isAdmin = computed(() => page.props.auth.user?.role === 'admin');
 </script>
 
 <template>
     <Head title="Encyclopedia" />
 
-    <PublicLayout>
+    <EncyclopediaLayout>
         <div class="mx-auto max-w-6xl px-4 py-8">
-            <h1 class="text-2xl font-semibold">Rice Disease Encyclopedia</h1>
+            <div class="flex items-center justify-between gap-4">
+                <h1 class="text-2xl font-semibold">
+                    Rice Disease Encyclopedia
+                </h1>
+                <Link
+                    v-if="isAdmin"
+                    :href="createDisease().url"
+                    class="inline-flex shrink-0 items-center rounded-md bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+                >
+                    Add disease
+                </Link>
+            </div>
 
             <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <Link
@@ -61,7 +77,7 @@ defineProps<{
                 </Link>
             </div>
         </div>
-    </PublicLayout>
+    </EncyclopediaLayout>
 </template>
 
 <style scoped>

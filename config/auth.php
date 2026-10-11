@@ -114,4 +114,6 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    'require_email_verification' => env('AUTH_REQUIRE_EMAIL_VERIFICATION', false),
+
 ];

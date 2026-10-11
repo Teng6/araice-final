@@ -5,6 +5,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import { store as sendPasswordResetLink } from '@/actions/App/Http/Controllers/Auth/PasswordResetLinkController';
 
 defineProps<{
     status?: string;
@@ -15,7 +16,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('password.email'));
+    form.post(sendPasswordResetLink().url);
 };
 </script>
 

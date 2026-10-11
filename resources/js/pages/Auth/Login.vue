@@ -6,6 +6,9 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { store as authenticate } from '@/actions/App/Http/Controllers/Auth/AuthenticatedSessionController';
+import { register } from '@/routes';
+import { request as passwordRequest } from '@/routes/password';
 
 defineProps<{
     canResetPassword?: boolean;
@@ -19,7 +22,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('login'), {
+    form.post(authenticate().url, {
         onFinish: () => {
             form.reset('password');
         },
@@ -76,7 +79,7 @@ const submit = () => {
 
             <div class="mt-4 flex items-center justify-end">
                 <Link
-                    :href="route('register')"
+                    :href="register().url"
                     class="me-auto rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
                 >
                     Register
@@ -84,7 +87,7 @@ const submit = () => {
 
                 <Link
                     v-if="canResetPassword"
-                    :href="route('password.request')"
+                    :href="passwordRequest().url"
                     class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
                 >
                     Forgot your password?

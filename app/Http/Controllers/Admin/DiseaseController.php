@@ -3,48 +3,67 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreDiseaseRequest;
+use App\Http\Requests\UpdateDiseaseRequest;
 use App\Models\Disease;
-use Illuminate\Http\Request;
+use App\Models\Outbreak;
+use App\Models\Scan;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class DiseaseController extends Controller
 {
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(): void
+    public function create(): Response
     {
-        //
+        Gate::authorize('create', Disease::class);
+
+        return Inertia::render('admin/diseases/create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request): void
+    public function store(StoreDiseaseRequest $request): RedirectResponse
     {
-        //
+        $disease = Disease::create($request->validated());
+
+        return to_route('encyclopedia.show', $disease)
+            ->with('success', 'Disease added.');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Disease $disease): void
+    public function edit(Disease $disease): Response
     {
-        //
+        Gate::authorize('update', $disease);
+
+        return Inertia::render('admin/diseases/edit', [
+            'disease' => $disease->load([
+                'treatments' => fn (HasMany $query) => $query->orderBy('title'),
+            ]),
+        ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Disease $disease): void
+    public function update(UpdateDiseaseRequest $request, Disease $disease): RedirectResponse
     {
-        //
+        $disease->update($request->validated());
+
+        return to_route('encyclopedia.show', $disease)
+            ->with('success', 'Disease updated.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Disease $disease): void
+    public function destroy(Disease $disease): RedirectResponse
     {
-        //
+        Gate::authorize('delete', $disease);
+
+        if (Scan::where('disease_id', $disease->id)->exists()
+            || Outbreak::where('disease_id', $disease->id)->exists()) {
+            return back()->withErrors([
+                'delete' => 'This disease has scans or outbreaks linked to it and cannot be deleted.',
+            ]);
+        }
+
+        $disease->delete();
+
+        return to_route('encyclopedia.index')
+            ->with('success', 'Disease deleted.');
     }
 }
