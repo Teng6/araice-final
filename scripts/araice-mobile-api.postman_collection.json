@@ -1,0 +1,561 @@
+{
+    "info": {
+        "_postman_id": "b56d8e1c-7c08-4a4f-9c55-7c0ab11e0a91",
+        "name": "ARAICE Mobile API Local Smoke Test",
+        "description": "Runs the seeded mobile API smoke flow. Import the collection and run it in order with the project server running and API test accounts seeded. The multipart image fields use public/images/stem_rot.jpg.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        { "key": "baseUrl", "value": "http://localhost:8000" },
+        {
+            "key": "vitUrl",
+            "value": "https://rice-disease-checker-api.onrender.com"
+        },
+        {
+            "key": "sampleImage",
+            "value": "C:\\Users\\HomePC\\Documents\\A-RAICE\\araice-final\\public\\images\\stem_rot.jpg"
+        },
+        { "key": "farmerEmail", "value": "api-farmer@test.local" },
+        { "key": "farmer2Email", "value": "api-farmer2@test.local" },
+        { "key": "lguEmail", "value": "api-lgu@test.local" },
+        { "key": "adminEmail", "value": "api-admin@test.local" },
+        { "key": "password", "value": "password" },
+        { "key": "wrongPassword", "value": "not-the-password" },
+        { "key": "farmerToken", "value": "" },
+        { "key": "farmer2Token", "value": "" },
+        { "key": "lguToken", "value": "" },
+        { "key": "adminToken", "value": "" },
+        { "key": "farmerScanId", "value": "" },
+        { "key": "farmerProfileId", "value": "" },
+        { "key": "lguScanId", "value": "" }
+    ],
+    "item": [
+        {
+            "name": "ViT health",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{vitUrl}}/health",
+                    "host": ["{{vitUrl}}"],
+                    "path": ["health"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('ViT health responds', function () { pm.expect(pm.response.code).to.be.within(200, 399); });"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Farmer login",
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"email\":\"{{farmerEmail}}\",\"password\":\"{{password}}\"}",
+                    "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/login",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "login"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('farmer login succeeds', function () { pm.response.to.have.status(200); });",
+                            "if (pm.response.code === 200) pm.collectionVariables.set('farmerToken', pm.response.json().token);"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Farmer submit scan",
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{farmerToken}}"
+                    }
+                ],
+                "body": {
+                    "mode": "formdata",
+                    "formdata": [
+                        {
+                            "key": "image",
+                            "type": "file",
+                            "src": "C:\\Users\\HomePC\\Documents\\A-RAICE\\araice-final\\public\\images\\stem_rot.jpg"
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/scans",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "scans"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('farmer scan created and completed', function () { pm.response.to.have.status(201); pm.expect(pm.response.json().status).to.eql('completed'); });",
+                            "if (pm.response.code === 201) pm.collectionVariables.set('farmerScanId', pm.response.json().id);"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Farmer list scans",
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{farmerToken}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/scans",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "scans"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('farmer list contains submitted scan', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().data.some(function (scan) { return scan.id == pm.collectionVariables.get('farmerScanId'); })).to.eql(true); });"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Farmer scan detail",
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{farmerToken}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/scans/{{farmerScanId}}",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "scans", "{{farmerScanId}}"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('farmer can read scan detail', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get('farmerScanId'))); });"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Farmer submit without image",
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{farmerToken}}"
+                    }
+                ],
+                "body": { "mode": "formdata", "formdata": [] },
+                "url": {
+                    "raw": "{{baseUrl}}/api/scans",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "scans"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('missing image returns 422', function () { pm.response.to.have.status(422); });"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Missing token returns 401",
+            "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": {
+                    "raw": "{{baseUrl}}/api/scans",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "scans"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('missing token returns 401', function () { pm.response.to.have.status(401); });"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Wrong password rejected",
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"email\":\"{{farmerEmail}}\",\"password\":\"{{wrongPassword}}\"}",
+                    "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/login",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "login"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('wrong password returns 401', function () { pm.response.to.have.status(401); });"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Farmer2 login",
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"email\":\"{{farmer2Email}}\",\"password\":\"{{password}}\"}",
+                    "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/login",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "login"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('farmer2 login succeeds', function () { pm.response.to.have.status(200); });",
+                            "if (pm.response.code === 200) pm.collectionVariables.set('farmer2Token', pm.response.json().token);"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Farmer2 requests farmer1 scan",
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{farmer2Token}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/scans/{{farmerScanId}}",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "scans", "{{farmerScanId}}"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('farmer2 is denied with 403', function () { pm.response.to.have.status(403); });"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Farmer logout",
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{farmerToken}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/logout",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "logout"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('farmer logout succeeds', function () { pm.response.to.have.status(200); });"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Old farmer token returns 401",
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{farmerToken}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/scans",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "scans"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('logged-out token returns 401', function () { pm.response.to.have.status(401); });"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "LGU login",
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"email\":\"{{lguEmail}}\",\"password\":\"{{password}}\"}",
+                    "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/login",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "login"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('LGU login succeeds', function () { pm.response.to.have.status(200); });",
+                            "if (pm.response.code === 200) pm.collectionVariables.set('lguToken', pm.response.json().token);"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "LGU list all scans",
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{lguToken}}" }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/scans",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "scans"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "var scans = pm.response.json().data || [];",
+                            "var farmerScan = scans.find(function (scan) { return scan.farmer && scan.farmer.name === 'API Farmer One' && scan.farmer.contact_number === '09170000001'; });",
+                            "pm.test('LGU list contains farmer name and contact', function () { pm.response.to.have.status(200); pm.expect(farmerScan).to.exist; });",
+                            "if (farmerScan) pm.collectionVariables.set('farmerProfileId', farmerScan.farmer.id);"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "LGU submit on behalf of farmer1",
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{lguToken}}" }
+                ],
+                "body": {
+                    "mode": "formdata",
+                    "formdata": [
+                        {
+                            "key": "image",
+                            "type": "file",
+                            "src": "C:\\Users\\HomePC\\Documents\\A-RAICE\\araice-final\\public\\images\\stem_rot.jpg"
+                        },
+                        {
+                            "key": "farmer_id",
+                            "value": "{{farmerProfileId}}",
+                            "type": "text"
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/scans",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "scans"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('LGU scan created and completed', function () { pm.response.to.have.status(201); pm.expect(pm.response.json().status).to.eql('completed'); });",
+                            "if (pm.response.code === 201) pm.collectionVariables.set('lguScanId', pm.response.json().id);"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "LGU submit without farmer_id",
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{lguToken}}" }
+                ],
+                "body": {
+                    "mode": "formdata",
+                    "formdata": [
+                        {
+                            "key": "image",
+                            "type": "file",
+                            "src": "C:\\Users\\HomePC\\Documents\\A-RAICE\\araice-final\\public\\images\\stem_rot.jpg"
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/scans",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "scans"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('missing farmer_id returns 422', function () { pm.response.to.have.status(422); });"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Admin login",
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"email\":\"{{adminEmail}}\",\"password\":\"{{password}}\"}",
+                    "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/login",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "login"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('admin login succeeds', function () { pm.response.to.have.status(200); });",
+                            "if (pm.response.code === 200) pm.collectionVariables.set('adminToken', pm.response.json().token);"
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}

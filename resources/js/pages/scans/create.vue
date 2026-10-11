@@ -18,7 +18,7 @@ defineProps<{
 }>();
 
 const page = usePage();
-const isLgu = computed(() => page.props.auth.user.role === 'lgu_staff');
+const requiresFarmer = computed(() => page.props.auth.user.role !== 'farmer');
 const imagePreviewUrl = ref<string | null>(null);
 const isDraggingPhoto = ref(false);
 const imageInputError = ref<string | null>(null);
@@ -206,7 +206,7 @@ onBeforeUnmount(() => {
                         </p>
                     </div>
 
-                    <template v-if="isLgu">
+                    <template v-if="requiresFarmer">
                         <div>
                             <label
                                 for="farmer_id"
