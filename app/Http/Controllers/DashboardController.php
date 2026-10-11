@@ -17,7 +17,38 @@ class DashboardController extends Controller
         $user = $request->user();
 
         if ($user->role !== UserRole::Farmer) {
-            return Inertia::render('Dashboard');
+            $recentScans = Scan::query()
+                ->with(['disease:id,name', 'farmer:id,full_name'])
+                ->latest('scan_date')
+                ->limit(5)
+                ->get([
+                    'id',
+                    'farmer_id',
+                    'disease_id',
+                    'status',
+                    'confidence_score',
+                    'scan_date',
+                ])
+                ->map(fn (Scan $scan) => [
+                    'id' => $scan->id,
+                    'status' => $scan->status->value,
+                    'confidence_score' => $scan->confidence_score,
+                    'scan_date' => $scan->scan_date,
+                    'disease' => $scan->disease?->name,
+                    'farmer_name' => $scan->farmer?->full_name,
+                ]);
+
+            return Inertia::render('Dashboard', [
+                'stats' => [
+                    'active_outbreaks' => Outbreak::query()
+                        ->where('status', OutbreakStatusEnum::Active)
+                        ->count(),
+                    'scans_last_7_days' => Scan::query()
+                        ->where('scan_date', '>=', now()->subDays(7))
+                        ->count(),
+                ],
+                'recent_scans' => $recentScans,
+            ]);
         }
 
         $farmerProfile = $user->farmerProfile;

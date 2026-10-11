@@ -8,6 +8,15 @@ export type RecentScan = {
     disease: string | null;
 };
 
+export type StaffRecentScan = RecentScan & {
+    farmer_name: string | null;
+};
+
+export type DashboardStats = {
+    active_outbreaks: number;
+    scans_last_7_days: number;
+};
+
 export type ActiveOutbreak = {
     disease: string;
     severity: 'low' | 'medium' | 'high';
