@@ -1,5 +1,19 @@
 export * from './auth';
 
+export type RecentScan = {
+    id: number;
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    confidence_score: string | null;
+    scan_date: string;
+    disease: string | null;
+};
+
+export type ActiveOutbreak = {
+    disease: string;
+    severity: 'low' | 'medium' | 'high';
+    started_at: string | null;
+};
+
 export type DiseaseSummary = {
     id: number;
     name: string;

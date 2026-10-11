@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DiseaseController as AdminDiseaseController;
 use App\Http\Controllers\AlertController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EncyclopediaController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\OutbreakController;
@@ -18,9 +19,7 @@ Route::get('/', function () {
 Route::get('/encyclopedia', [EncyclopediaController::class, 'index'])->name('encyclopedia.index');
 Route::get('/encyclopedia/{disease}', [EncyclopediaController::class, 'show'])->name('encyclopedia.show');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(array_filter([
+Route::get('/dashboard', DashboardController::class)->middleware(array_filter([
     'auth',
     config('auth.require_email_verification') ? 'verified' : null,
 ]))->name('dashboard');
