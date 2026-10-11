@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AlertController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\MapController;
 use App\Http\Controllers\Api\ScanController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,4 +17,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/scans/{scan}', [ScanController::class, 'show']);
     Route::get('/alerts', [AlertController::class, 'index']);
     Route::post('/alerts/{alert}/read', [AlertController::class, 'markRead']);
+    Route::get('/map', [MapController::class, 'index']);
 });

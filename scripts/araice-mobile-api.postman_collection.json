@@ -150,7 +150,11 @@
                     "script": {
                         "type": "text/javascript",
                         "exec": [
-                            "pm.test('farmer list contains submitted scan', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().data.some(function (scan) { return scan.id == pm.collectionVariables.get('farmerScanId'); })).to.eql(true); });"
+                            "pm.test('farmer list contains submitted scan', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().data.some(function (scan) { return scan.id == pm.collectionVariables.get('farmerScanId'); })).to.eql(true); });",
+                            "pm.test('list items do not embed treatments', () => {",
+                            "  const items = pm.response.json().data ?? [];",
+                            "  items.forEach((s) => pm.expect((s.disease || {}).treatments).to.be.undefined);",
+                            "});"
                         ]
                     }
                 }
@@ -179,7 +183,90 @@
                     "script": {
                         "type": "text/javascript",
                         "exec": [
-                            "pm.test('farmer can read scan detail', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get('farmerScanId'))); });"
+                            "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                            "",
+                            "const json = pm.response.json();",
+                            "const scan = json.data ?? json;",
+                            "",
+                            "pm.test('scan has expected keys', () => {",
+                            "  ['id', 'status', 'disease', 'confidence', 'gps_lat', 'gps_lng', 'outbreak_id']",
+                            "    .forEach((k) => pm.expect(scan).to.have.property(k));",
+                            "});",
+                            "",
+                            "if (scan.disease === null) {",
+                            "  pm.test('no disease detected: disease is null', () => {",
+                            "    pm.expect(scan.disease).to.be.null;",
+                            "  });",
+                            "} else {",
+                            "  pm.test('disease has descriptive fields', () => {",
+                            "    ['id', 'name', 'description', 'causes', 'symptoms', 'prevention_tips']",
+                            "      .forEach((k) => pm.expect(scan.disease).to.have.property(k));",
+                            "  });",
+                            "",
+                            "  pm.test('disease includes a treatments array', () => {",
+                            "    pm.expect(scan.disease.treatments).to.be.an('array');",
+                            "  });",
+                            "",
+                            "  pm.test('each treatment has the expected shape', () => {",
+                            "    scan.disease.treatments.forEach((t) => {",
+                            "      ['id', 'title', 'description', 'type'].forEach((k) => pm.expect(t).to.have.property(k));",
+                            "      pm.expect(t.type).to.be.oneOf(['chemical', 'biological', 'cultural', 'organic']);",
+                            "    });",
+                            "  });",
+                            "",
+                            "  pm.test('treatments are sorted by title', () => {",
+                            "    const titles = scan.disease.treatments.map((t) => t.title);",
+                            "    pm.expect(titles).to.eql([...titles].sort((a, b) => a.localeCompare(b)));",
+                            "  });",
+                            "}"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Farmer map data",
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{farmerToken}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/map",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "map"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                            "const json = pm.response.json();",
+                            "pm.test('all 12 municipalities have summary-only fields', () => {",
+                            "  pm.expect(json.municipalities).to.have.length(12);",
+                            "  json.municipalities.forEach((m) => {",
+                            "    pm.expect(m.slug).to.be.a('string').and.not.empty;",
+                            "    pm.expect(m).to.have.property('severity');",
+                            "    pm.expect(Object.keys(m).sort()).to.eql(['severity', 'slug']);",
+                            "  });",
+                            "});",
+                            "pm.test('farmer receives only own municipality outbreak details', () => {",
+                            "  pm.expect(json.outbreaks.every((o) => o.municipality === 'balanga')).to.be.true;",
+                            "});",
+                            "pm.test('farmer receives only own private-field-free farm pin', () => {",
+                            "  pm.expect(json.farms).to.have.length(1);",
+                            "  pm.expect(json.farms[0].municipality).to.eql('balanga');",
+                            "  pm.expect(json.farms[0]).not.to.have.property('name');",
+                            "  pm.expect(json.farms[0]).not.to.have.property('contact_number');",
+                            "  pm.expect(json.farms[0].scan).to.have.property('id');",
+                            "});"
                         ]
                     }
                 }
@@ -406,6 +493,29 @@
                         "type": "text/javascript",
                         "exec": [
                             "pm.test('missing token returns 401', function () { pm.response.to.have.status(401); });"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Map without token returns 401",
+            "request": {
+                "method": "GET",
+                "header": [{ "key": "Accept", "value": "application/json" }],
+                "url": {
+                    "raw": "{{baseUrl}}/api/map",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "map"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"
                         ]
                     }
                 }
@@ -711,6 +821,45 @@
             ]
         },
         {
+            "name": "LGU map data",
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{lguToken}}" }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/map",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "map"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                            "const json = pm.response.json();",
+                            "pm.test('LGU receives all municipality summaries and province-wide outbreak details', () => {",
+                            "  pm.expect(json.municipalities).to.have.length(12);",
+                            "  pm.expect(json.outbreaks.some((o) => o.disease === 'API Smoke Test Disease')).to.be.true;",
+                            "});",
+                            "pm.test('LGU pins include farmer details and latest linked scan', () => {",
+                            "  const farm = json.farms.find((f) => f.name === 'API Farmer One');",
+                            "  pm.expect(farm, 'seeded farmer pin').to.exist;",
+                            "  pm.expect(farm.contact_number).to.eql('09170000001');",
+                            "  pm.expect(farm.scan.id).to.be.a('number');",
+                            "  pm.expect(farm.scan.disease).to.be.a('string');",
+                            "  pm.expect(farm.scan.scan_date).to.be.a('string');",
+                            "});"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
             "name": "LGU list alerts",
             "request": {
                 "method": "GET",
@@ -852,6 +1001,45 @@
                         "exec": [
                             "pm.test('admin login succeeds', function () { pm.response.to.have.status(200); });",
                             "if (pm.response.code === 200) pm.collectionVariables.set('adminToken', pm.response.json().token);"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Admin map data",
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/map",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "map"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                            "const json = pm.response.json();",
+                            "pm.test('admin receives all municipality summaries and province-wide outbreak details', () => {",
+                            "  pm.expect(json.municipalities).to.have.length(12);",
+                            "  pm.expect(json.outbreaks.some((o) => o.disease === 'API Smoke Test Disease')).to.be.true;",
+                            "});",
+                            "pm.test('admin pins include farmer details and latest linked scan', () => {",
+                            "  const farm = json.farms.find((f) => f.name === 'API Farmer One');",
+                            "  pm.expect(farm, 'seeded farmer pin').to.exist;",
+                            "  pm.expect(farm.contact_number).to.eql('09170000001');",
+                            "  pm.expect(farm.scan.id).to.be.a('number');",
+                            "  pm.expect(farm.scan.disease).to.be.a('string');",
+                            "  pm.expect(farm.scan.scan_date).to.be.a('string');",
+                            "});"
                         ]
                     }
                 }

@@ -3,11 +3,13 @@
 use App\Enums\MunicipalityEnum;
 use App\Enums\OutbreakStatusEnum;
 use App\Enums\ScanStatusEnum;
+use App\Enums\TreatmentTypeEnum;
 use App\Enums\UserRole;
 use App\Models\Disease;
 use App\Models\FarmerProfile;
 use App\Models\Outbreak;
 use App\Models\Scan;
+use App\Models\Treatment;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
@@ -112,6 +114,78 @@ test('a farmer cannot access another farmers mobile scan detail', function () {
     $this->withToken($user->createToken('mobile')->plainTextToken)
         ->getJson("/api/scans/{$scan->id}")
         ->assertForbidden();
+});
+
+test('scan detail includes title-ordered treatments while the scan list omits them', function () {
+    $user = User::factory()->create(['role' => UserRole::Farmer]);
+    $farmer = FarmerProfile::factory()->for($user)->create();
+    $disease = Disease::factory()->create(['name' => 'Leaf Spot']);
+    $scan = Scan::factory()->for($farmer, 'farmer')->create([
+        'disease_id' => $disease->id,
+        'uploaded_by_id' => $user->id,
+    ]);
+    $zebraTreatment = Treatment::factory()->for($disease)->create([
+        'title' => 'Zebra treatment',
+        'description' => 'Apply after symptoms appear.',
+        'type' => TreatmentTypeEnum::Chemical,
+    ]);
+    $alphaTreatment = Treatment::factory()->for($disease)->create([
+        'title' => 'Alpha treatment',
+        'description' => 'Use resistant seed.',
+        'type' => TreatmentTypeEnum::Cultural,
+    ]);
+    $token = $user->createToken('mobile')->plainTextToken;
+
+    $this->withToken($token)
+        ->getJson("/api/scans/{$scan->id}")
+        ->assertOk()
+        ->assertJsonPath('disease.treatments.0', [
+            'id' => $alphaTreatment->id,
+            'title' => 'Alpha treatment',
+            'description' => 'Use resistant seed.',
+            'type' => TreatmentTypeEnum::Cultural->value,
+        ])
+        ->assertJsonPath('disease.treatments.1', [
+            'id' => $zebraTreatment->id,
+            'title' => 'Zebra treatment',
+            'description' => 'Apply after symptoms appear.',
+            'type' => TreatmentTypeEnum::Chemical->value,
+        ]);
+
+    $this->app['auth']->forgetGuards();
+    $this->withToken($token)
+        ->getJson('/api/scans')
+        ->assertOk()
+        ->assertJsonMissingPath('data.0.disease.treatments');
+});
+
+test('scan detail returns an empty treatments array when the disease has none', function () {
+    $user = User::factory()->create(['role' => UserRole::Farmer]);
+    $farmer = FarmerProfile::factory()->for($user)->create();
+    $disease = Disease::factory()->create();
+    $scan = Scan::factory()->for($farmer, 'farmer')->create([
+        'disease_id' => $disease->id,
+        'uploaded_by_id' => $user->id,
+    ]);
+
+    $this->withToken($user->createToken('mobile')->plainTextToken)
+        ->getJson("/api/scans/{$scan->id}")
+        ->assertOk()
+        ->assertJsonPath('disease.treatments', []);
+});
+
+test('scan detail keeps disease null when no disease was detected', function () {
+    $user = User::factory()->create(['role' => UserRole::Farmer]);
+    $farmer = FarmerProfile::factory()->for($user)->create();
+    $scan = Scan::factory()->for($farmer, 'farmer')->create([
+        'disease_id' => null,
+        'uploaded_by_id' => $user->id,
+    ]);
+
+    $this->withToken($user->createToken('mobile')->plainTextToken)
+        ->getJson("/api/scans/{$scan->id}")
+        ->assertOk()
+        ->assertJsonPath('disease', null);
 });
 
 test('an LGU scan counts the selected farmer toward outbreak detection', function () {

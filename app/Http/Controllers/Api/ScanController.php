@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreScanRequest;
 use App\Models\FarmerProfile;
 use App\Models\Scan;
+use App\Models\Treatment;
 use App\Services\CreateScan;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -73,7 +74,10 @@ class ScanController extends Controller
     {
         Gate::authorize('view', $scan);
 
-        $scan->load(['disease', 'outbreak']);
+        $scan->load([
+            'disease.treatments' => fn ($query) => $query->orderBy('title'),
+            'outbreak',
+        ]);
 
         return response()->json($this->scanData($scan, false, true, true));
     }
@@ -98,6 +102,15 @@ class ScanController extends Controller
                     'causes' => $scan->disease->causes,
                     'symptoms' => $scan->disease->symptoms,
                     'prevention_tips' => $scan->disease->prevention_tips,
+                    'treatments' => $scan->disease->treatments
+                        ->map(fn (Treatment $treatment): array => [
+                            'id' => $treatment->id,
+                            'title' => $treatment->title,
+                            'description' => $treatment->description,
+                            'type' => $treatment->type->value,
+                        ])
+                        ->values()
+                        ->all(),
                 ] : []),
             ],
             'confidence' => $scan->confidence_score === null

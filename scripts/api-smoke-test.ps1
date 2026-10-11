@@ -263,6 +263,17 @@ if ($script:FarmerToken -and $script:FarmerScanId) {
         if ($response.Status -ne 200 -or $response.Data.id -ne $script:FarmerScanId) {
             throw "Detail request returned HTTP $($response.Status)."
         }
+        if ($null -ne $response.Data.disease) {
+            if (-not ($response.Data.disease.PSObject.Properties.Name -contains 'treatments')) {
+                throw 'Scan detail disease object is missing treatments.'
+            }
+            foreach ($treatment in @($response.Data.disease.treatments)) {
+                if ($null -eq $treatment.id -or [string]::IsNullOrWhiteSpace($treatment.title) -or
+                    $null -eq $treatment.description -or [string]::IsNullOrWhiteSpace($treatment.type)) {
+                    throw 'Scan detail contains a treatment without id, title, description, or type.'
+                }
+            }
+        }
     }
 }
 else {
@@ -328,6 +339,34 @@ else {
 }
 
 if ($script:FarmerToken) {
+    Write-Check 'farmer map returns all summaries and only own farm details' {
+        $response = Invoke-Api -Method Get -Path '/api/map' -Headers (Get-AuthHeaders $script:FarmerToken)
+        $municipalities = @($response.Data.municipalities)
+        $farm = @($response.Data.farms) | Select-Object -First 1
+        $invalidMunicipality = $municipalities | Where-Object {
+            [string]::IsNullOrWhiteSpace($_.slug) -or
+            -not ($_.PSObject.Properties.Name -contains 'severity') -or
+            $_.PSObject.Properties.Name.Count -ne 2
+        } | Select-Object -First 1
+        if ($response.Status -ne 200 -or $municipalities.Count -ne 12 -or $null -ne $invalidMunicipality) {
+            throw "Map summaries are invalid or incomplete (HTTP $($response.Status))."
+        }
+        if (@($response.Data.outbreaks | Where-Object { $_.municipality -ne 'balanga' }).Count -gt 0) {
+            throw 'Farmer map exposed outbreak details outside Balanga.'
+        }
+        if (@($response.Data.farms).Count -ne 1 -or $farm.municipality -ne 'balanga' -or
+            $farm.PSObject.Properties.Name -contains 'name' -or
+            $farm.PSObject.Properties.Name -contains 'contact_number' -or
+            $null -eq $farm.scan.id -or $null -eq $farm.scan.disease -or $null -eq $farm.scan.scan_date) {
+            throw 'Farmer map pin is missing own-farm scan details or exposes private fields.'
+        }
+    }
+}
+else {
+    Write-Check 'farmer map returns all summaries and only own farm details' { throw 'Skipped because farmer login failed.' }
+}
+
+if ($script:FarmerToken) {
     Write-Check 'farmer submit without image returns 422' {
         $response = Invoke-MultipartUpload -Token $script:FarmerToken
         if ($response.Status -ne 422) {
@@ -348,6 +387,13 @@ Write-Check 'missing token returns 401' {
 
 Write-Check 'missing token alert list returns 401' {
     $response = Invoke-Api -Method Get -Path '/api/alerts'
+    if ($response.Status -ne 401) {
+        throw "Expected HTTP 401; received HTTP $($response.Status)."
+    }
+}
+
+Write-Check 'missing token map returns 401' {
+    $response = Invoke-Api -Method Get -Path '/api/map'
     if ($response.Status -ne 401) {
         throw "Expected HTTP 401; received HTTP $($response.Status)."
     }
@@ -421,10 +467,22 @@ if ($script:LguToken) {
             throw "LGU alert list did not include the seeded alert (HTTP $($response.Status))."
         }
     }
+
+    Write-Check 'LGU map includes province-wide outbreak details and scan pins' {
+        $response = Invoke-Api -Method Get -Path '/api/map' -Headers (Get-AuthHeaders $script:LguToken)
+        $farm = @($response.Data.farms | Where-Object { $_.name -eq 'API Farmer One' }) | Select-Object -First 1
+        if ($response.Status -ne 200 -or @($response.Data.municipalities).Count -ne 12 -or
+            -not ($response.Data.outbreaks | Where-Object { $_.disease -eq 'API Smoke Test Disease' }) -or
+            $null -eq $farm -or $null -eq $farm.contact_number -or $null -eq $farm.scan.id -or
+            $null -eq $farm.scan.disease -or $null -eq $farm.scan.scan_date) {
+            throw "LGU map is missing province-wide details or active outbreak scan pins (HTTP $($response.Status))."
+        }
+    }
 }
 else {
     Write-Check 'LGU list includes farmer name and contact' { throw 'Skipped because LGU login failed.' }
     Write-Check 'LGU alert list includes seeded outbreak alert' { throw 'Skipped because LGU login failed.' }
+    Write-Check 'LGU map includes province-wide outbreak details and scan pins' { throw 'Skipped because LGU login failed.' }
 }
 
 if ($script:LguToken -and $script:FarmerProfileId -and $script:VitReachable) {
@@ -463,9 +521,21 @@ if ($script:AdminToken) {
             throw "Admin alert list did not include the seeded alert (HTTP $($response.Status))."
         }
     }
+
+    Write-Check 'admin map includes province-wide outbreak details and scan pins' {
+        $response = Invoke-Api -Method Get -Path '/api/map' -Headers (Get-AuthHeaders $script:AdminToken)
+        $farm = @($response.Data.farms | Where-Object { $_.name -eq 'API Farmer One' }) | Select-Object -First 1
+        if ($response.Status -ne 200 -or @($response.Data.municipalities).Count -ne 12 -or
+            -not ($response.Data.outbreaks | Where-Object { $_.disease -eq 'API Smoke Test Disease' }) -or
+            $null -eq $farm -or $null -eq $farm.contact_number -or $null -eq $farm.scan.id -or
+            $null -eq $farm.scan.disease -or $null -eq $farm.scan.scan_date) {
+            throw "Admin map is missing province-wide details or active outbreak scan pins (HTTP $($response.Status))."
+        }
+    }
 }
 else {
     Write-Check 'admin alert list includes seeded outbreak alert' { throw 'Skipped because admin login failed.' }
+    Write-Check 'admin map includes province-wide outbreak details and scan pins' { throw 'Skipped because admin login failed.' }
 }
 
 if ($script:FarmerToken) {
