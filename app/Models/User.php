@@ -83,11 +83,12 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * @return BelongsToMany<Alert, $this>
+     * @return BelongsToMany<Alert, $this, AlertUser>
      */
     public function alerts(): BelongsToMany
     {
         return $this->belongsToMany(Alert::class, 'alert_user')
-            ->withPivot('read_at');
+            ->withPivot('read_at')
+            ->using(AlertUser::class);
     }
 }

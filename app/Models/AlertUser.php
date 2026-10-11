@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class AlertUser extends Model
-{
-    //
-}
+/**
+ * @property string|null $read_at
+ */
+class AlertUser extends Pivot {}

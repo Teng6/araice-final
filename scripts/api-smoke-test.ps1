@@ -12,6 +12,7 @@ $script:LguToken = $null
 $script:FarmerScanId = $null
 $script:FarmerProfileId = $null
 $script:LguScanId = $null
+$script:FarmerAlertId = $null
 $BaseUrl = $BaseUrl.TrimEnd('/')
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $SampleImage = Join-Path $ProjectRoot 'public\images\stem_rot.jpg'
@@ -270,6 +271,63 @@ else {
 }
 
 if ($script:FarmerToken) {
+    Write-Check 'farmer unread alerts include seeded outbreak alert' {
+        $response = Invoke-Api -Method Get -Path '/api/alerts?unread=1' -Headers (Get-AuthHeaders $script:FarmerToken)
+        $alert = $response.Data.data | Where-Object {
+            $_.disease -eq 'API Smoke Test Disease' -and
+            $_.municipality -eq 'balanga' -and
+            $null -eq $_.read_at
+        } | Select-Object -First 1
+        if ($response.Status -ne 200 -or $null -eq $alert) {
+            throw "Seeded unread outbreak alert not found (HTTP $($response.Status)). Run ApiTestSeeder first."
+        }
+        $script:FarmerAlertId = [int]$alert.id
+    }
+
+    if ($script:FarmerAlertId) {
+        Write-Check 'farmer marks own alert read' {
+            $response = Invoke-Api -Method Post -Path "/api/alerts/$script:FarmerAlertId/read" -Headers (Get-AuthHeaders $script:FarmerToken)
+            if ($response.Status -ne 200 -or $null -eq $response.Data.read_at) {
+                throw "Mark read returned HTTP $($response.Status) or no read_at value."
+            }
+            $script:FirstAlertReadAt = [string]$response.Data.read_at
+        }
+
+        if ($script:FirstAlertReadAt) {
+            Start-Sleep -Seconds 1
+            Write-Check 'marking an already-read alert is idempotent' {
+                $response = Invoke-Api -Method Post -Path "/api/alerts/$script:FarmerAlertId/read" -Headers (Get-AuthHeaders $script:FarmerToken)
+                if ($response.Status -ne 200 -or [string]$response.Data.read_at -ne $script:FirstAlertReadAt) {
+                    throw 'Repeated read changed the original read_at timestamp.'
+                }
+            }
+
+            Write-Check 'read alert no longer appears in unread filter' {
+                $response = Invoke-Api -Method Get -Path '/api/alerts?unread=1' -Headers (Get-AuthHeaders $script:FarmerToken)
+                if ($response.Status -ne 200 -or ($response.Data.data | Where-Object { $_.id -eq $script:FarmerAlertId })) {
+                    throw "Read alert still appears in unread results or request returned HTTP $($response.Status)."
+                }
+            }
+        }
+        else {
+            Write-Check 'marking an already-read alert is idempotent' { throw 'Skipped because marking the alert read failed.' }
+            Write-Check 'read alert no longer appears in unread filter' { throw 'Skipped because marking the alert read failed.' }
+        }
+    }
+    else {
+        Write-Check 'farmer marks own alert read' { throw 'Skipped because the seeded alert is missing.' }
+        Write-Check 'marking an already-read alert is idempotent' { throw 'Skipped because the seeded alert is missing.' }
+        Write-Check 'read alert no longer appears in unread filter' { throw 'Skipped because the seeded alert is missing.' }
+    }
+}
+else {
+    Write-Check 'farmer unread alerts include seeded outbreak alert' { throw 'Skipped because farmer login failed.' }
+    Write-Check 'farmer marks own alert read' { throw 'Skipped because farmer login failed.' }
+    Write-Check 'marking an already-read alert is idempotent' { throw 'Skipped because farmer login failed.' }
+    Write-Check 'read alert no longer appears in unread filter' { throw 'Skipped because farmer login failed.' }
+}
+
+if ($script:FarmerToken) {
     Write-Check 'farmer submit without image returns 422' {
         $response = Invoke-MultipartUpload -Token $script:FarmerToken
         if ($response.Status -ne 422) {
@@ -283,6 +341,13 @@ else {
 
 Write-Check 'missing token returns 401' {
     $response = Invoke-Api -Method Get -Path '/api/scans'
+    if ($response.Status -ne 401) {
+        throw "Expected HTTP 401; received HTTP $($response.Status)."
+    }
+}
+
+Write-Check 'missing token alert list returns 401' {
+    $response = Invoke-Api -Method Get -Path '/api/alerts'
     if ($response.Status -ne 401) {
         throw "Expected HTTP 401; received HTTP $($response.Status)."
     }
@@ -314,6 +379,25 @@ else {
     Write-Check 'farmer2 gets 403 for farmer1 scan' { throw 'Skipped because farmer2 login or farmer1 scan is unavailable.' }
 }
 
+if ($script:Farmer2Token -and $script:FarmerAlertId) {
+    Write-Check 'farmer2 alert list excludes farmer1 alert' {
+        $response = Invoke-Api -Method Get -Path '/api/alerts' -Headers (Get-AuthHeaders $script:Farmer2Token)
+        if ($response.Status -ne 200 -or ($response.Data.data | Where-Object { $_.id -eq $script:FarmerAlertId })) {
+            throw "Farmer2 alert list contains farmer1's alert or returned HTTP $($response.Status)."
+        }
+    }
+    Write-Check 'farmer2 cannot mark farmer1 alert read' {
+        $response = Invoke-Api -Method Post -Path "/api/alerts/$script:FarmerAlertId/read" -Headers (Get-AuthHeaders $script:Farmer2Token)
+        if ($response.Status -ne 404) {
+            throw "Expected HTTP 404; received HTTP $($response.Status)."
+        }
+    }
+}
+else {
+    Write-Check 'farmer2 alert list excludes farmer1 alert' { throw 'Skipped because farmer2 login or farmer1 alert is unavailable.' }
+    Write-Check 'farmer2 cannot mark farmer1 alert read' { throw 'Skipped because farmer2 login or farmer1 alert is unavailable.' }
+}
+
 Write-Check 'LGU login' {
     $script:LguToken = Get-LoginToken 'api-lgu@test.local' 'password'
 }
@@ -330,9 +414,17 @@ if ($script:LguToken) {
         }
         $script:FarmerProfileId = [int]$farmerScan.farmer.id
     }
+
+    Write-Check 'LGU alert list includes seeded outbreak alert' {
+        $response = Invoke-Api -Method Get -Path '/api/alerts' -Headers (Get-AuthHeaders $script:LguToken)
+        if ($response.Status -ne 200 -or -not ($response.Data.data | Where-Object { $_.id -eq $script:FarmerAlertId })) {
+            throw "LGU alert list did not include the seeded alert (HTTP $($response.Status))."
+        }
+    }
 }
 else {
     Write-Check 'LGU list includes farmer name and contact' { throw 'Skipped because LGU login failed.' }
+    Write-Check 'LGU alert list includes seeded outbreak alert' { throw 'Skipped because LGU login failed.' }
 }
 
 if ($script:LguToken -and $script:FarmerProfileId -and $script:VitReachable) {
@@ -358,6 +450,22 @@ if ($script:LguToken) {
 }
 else {
     Write-Check 'LGU submit without farmer_id returns 422' { throw 'Skipped because LGU login failed.' }
+}
+
+Write-Check 'admin login' {
+    $script:AdminToken = Get-LoginToken 'api-admin@test.local' 'password'
+}
+
+if ($script:AdminToken) {
+    Write-Check 'admin alert list includes seeded outbreak alert' {
+        $response = Invoke-Api -Method Get -Path '/api/alerts' -Headers (Get-AuthHeaders $script:AdminToken)
+        if ($response.Status -ne 200 -or -not ($response.Data.data | Where-Object { $_.id -eq $script:FarmerAlertId })) {
+            throw "Admin alert list did not include the seeded alert (HTTP $($response.Status))."
+        }
+    }
+}
+else {
+    Write-Check 'admin alert list includes seeded outbreak alert' { throw 'Skipped because admin login failed.' }
 }
 
 if ($script:FarmerToken) {

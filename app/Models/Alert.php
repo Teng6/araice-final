@@ -36,11 +36,12 @@ class Alert extends Model
     }
 
     /**
-     * @return BelongsToMany<User, $this>
+     * @return BelongsToMany<User, $this, AlertUser>
      */
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'alert_user')
-            ->withPivot('read_at');
+            ->withPivot('read_at')
+            ->using(AlertUser::class);
     }
 }

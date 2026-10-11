@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AlertController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ScanController;
 use Illuminate\Support\Facades\Route;
@@ -13,4 +14,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/scans', [ScanController::class, 'store']);
     Route::get('/scans', [ScanController::class, 'index']);
     Route::get('/scans/{scan}', [ScanController::class, 'show']);
+    Route::get('/alerts', [AlertController::class, 'index']);
+    Route::post('/alerts/{alert}/read', [AlertController::class, 'markRead']);
 });
