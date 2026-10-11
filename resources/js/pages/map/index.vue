@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
+import { show as scanShow } from '@/actions/App/Http/Controllers/ScanController';
 import Map from 'ol/Map';
+import Overlay from 'ol/Overlay';
 import View from 'ol/View';
 import Feature from 'ol/Feature';
 import type { FeatureLike } from 'ol/Feature';
@@ -18,6 +20,7 @@ import { Fill, Stroke, Style, Text } from 'ol/style';
 import 'ol/ol.css';
 
 type Severity = 'low' | 'medium' | 'high';
+const FARM_PIN_ZOOM = 14;
 
 interface OutbreakPin {
     id: number;
@@ -34,9 +37,17 @@ interface MunicipalityStatus {
 
 interface FarmPin {
     id: number;
-    name: string;
+    name?: string;
+    contact_number?: string | null;
+    barangay: string;
+    municipality: string;
     lat: number;
     lng: number;
+    scan: {
+        id: number;
+        disease: string | null;
+        scan_date: string | null;
+    } | null;
 }
 
 const props = defineProps<{
@@ -47,10 +58,13 @@ const props = defineProps<{
 }>();
 
 const mapEl = ref<HTMLDivElement>();
+const popupEl = ref<HTMLDivElement>();
 const hoveredSlug = ref<string | null>(null);
 const hoveredFarm = ref<string | null>(null);
+const selectedFarm = ref<FarmPin | null>(null);
 let resetView = () => {};
 let zoomToMunicipality = (_slug: string) => {};
+let closeFarmPopup = () => {};
 
 const names: Record<string, string> = {
     abucay: 'Abucay',
@@ -167,6 +181,7 @@ onMounted(() => {
                 (farm) =>
                     new Feature({
                         geometry: new Point(fromLonLat([farm.lng, farm.lat])),
+                        farmId: farm.id,
                         name: farm.name,
                     }),
             ),
@@ -212,6 +227,17 @@ onMounted(() => {
             smoothExtentConstraint: false,
         }),
     });
+    const farmOverlay = new Overlay({
+        element: popupEl.value,
+        positioning: 'bottom-center',
+        offset: [0, -14],
+        stopEvent: true,
+    });
+    map.addOverlay(farmOverlay);
+    closeFarmPopup = () => {
+        selectedFarm.value = null;
+        farmOverlay.setPosition(undefined);
+    };
 
     resetView = () => {
         const extent = boundaryLayer.getSource()?.getExtent();
@@ -248,7 +274,12 @@ onMounted(() => {
             layerFilter: (layer) => layer === pinLayer,
         });
         const farmName = pin?.get('name');
-        hoveredFarm.value = typeof farmName === 'string' ? farmName : null;
+        hoveredFarm.value =
+            typeof farmName === 'string'
+                ? farmName
+                : pin && props.ownMunicipality !== null
+                  ? 'Your farm'
+                  : null;
 
         const feature = map.forEachFeatureAtPixel(event.pixel, (f) => f, {
             layerFilter: (layer) => layer === boundaryLayer,
@@ -258,11 +289,41 @@ onMounted(() => {
             hovered = feature ?? null;
             hoveredSlug.value = hovered?.get('municipality') ?? null;
             boundaryLayer.changed();
-            map.getTargetElement().style.cursor = hovered ? 'pointer' : '';
+            map.getTargetElement().style.cursor =
+                pin || hovered ? 'pointer' : '';
+        } else {
+            map.getTargetElement().style.cursor = pin ? 'pointer' : '';
         }
     });
 
     map.on('click', (event) => {
+        const pin = map.forEachFeatureAtPixel(event.pixel, (f) => f, {
+            layerFilter: (layer) => layer === pinLayer,
+        });
+        if (pin) {
+            const farmId = pin.get('farmId');
+            const farm = props.farms.find((item) => item.id === farmId);
+            const geometry = pin.getGeometry();
+            if (farm && geometry instanceof Point) {
+                const coordinate = geometry.getCoordinates();
+                selectedFarm.value = farm;
+                farmOverlay.setPosition(coordinate);
+
+                const view = map.getView();
+                const currentZoom = view.getZoom() ?? 0;
+                view.animate({
+                    center: coordinate,
+                    ...(currentZoom < FARM_PIN_ZOOM
+                        ? { zoom: FARM_PIN_ZOOM }
+                        : {}),
+                    duration: 400,
+                });
+            }
+            return;
+        }
+
+        closeFarmPopup();
+
         const feature = map.forEachFeatureAtPixel(event.pixel, (f) => f, {
             layerFilter: (layer) => layer === boundaryLayer,
         });
@@ -288,6 +349,81 @@ onMounted(() => {
         <div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
             <div class="relative">
                 <div ref="mapEl" class="h-128 w-full rounded-lg shadow"></div>
+
+                <div
+                    ref="popupEl"
+                    v-show="selectedFarm"
+                    class="max-h-[calc(100vh-2rem)] w-64 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-lg border border-gray-200 bg-white p-4 text-sm shadow-xl"
+                >
+                    <button
+                        type="button"
+                        class="absolute top-2 right-2 rounded p-1 text-lg leading-none text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+                        aria-label="Close farm details"
+                        @click.stop="closeFarmPopup()"
+                    >
+                        &times;
+                    </button>
+                    <h3 class="pr-6 font-semibold text-gray-900">
+                        {{
+                            selectedFarm?.name ??
+                            (ownMunicipality === null ? 'Farm' : 'Your farm')
+                        }}
+                    </h3>
+                    <dl
+                        v-if="selectedFarm"
+                        class="mt-2 space-y-1 text-gray-600"
+                    >
+                        <template v-if="selectedFarm.name !== undefined">
+                            <div class="flex justify-between gap-2">
+                                <dt>Contact</dt>
+                                <dd class="text-right">
+                                    {{
+                                        selectedFarm.contact_number ??
+                                        'Not provided'
+                                    }}
+                                </dd>
+                            </div>
+                        </template>
+                        <div class="flex justify-between gap-2">
+                            <dt>Barangay</dt>
+                            <dd class="text-right">
+                                {{ selectedFarm.barangay }}
+                            </dd>
+                        </div>
+                        <div class="flex justify-between gap-2">
+                            <dt>Municipality</dt>
+                            <dd class="text-right">
+                                {{ names[selectedFarm.municipality] }}
+                            </dd>
+                        </div>
+                        <div class="border-t border-gray-100 pt-2">
+                            <p class="font-medium text-gray-800">Latest scan</p>
+                            <template v-if="selectedFarm.scan">
+                                <p>
+                                    {{
+                                        selectedFarm.scan.disease ??
+                                        'No disease detected'
+                                    }}
+                                </p>
+                                <p>
+                                    {{
+                                        selectedFarm.scan.scan_date ??
+                                        'Date unavailable'
+                                    }}
+                                </p>
+                                <Link
+                                    :href="scanShow(selectedFarm.scan.id).url"
+                                    class="mt-1 inline-block font-medium text-emerald-700 underline hover:text-emerald-800"
+                                >
+                                    View scan details
+                                </Link>
+                            </template>
+                            <p v-else class="text-gray-500">
+                                No scans recorded yet.
+                            </p>
+                        </div>
+                    </dl>
+                </div>
 
                 <div
                     v-if="hoveredSlug"

@@ -7,7 +7,9 @@ use App\Enums\OutbreakStatusEnum;
 use App\Enums\UserRole;
 use App\Models\FarmerProfile;
 use App\Models\Outbreak;
+use App\Models\Scan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -51,18 +53,68 @@ class MapController extends Controller
                     ->first()?->severity->value ?? 'low',
             ]);
 
-        $farms = ($user->role === UserRole::Farmer
-            ? collect([$user->farmerProfile])->filter()
-            : FarmerProfile::query()
+        if ($isFarmer) {
+            $farmer = $user->farmerProfile;
+            $farms = $farmer === null
+                ? collect()
+                : collect([$farmer->load([
+                    'scans' => fn ($query) => $query
+                        ->select(['id', 'farmer_id', 'disease_id', 'scan_date'])
+                        ->with('disease:id,name')
+                        ->latest('scan_date')
+                        ->latest('id')
+                        ->limit(1),
+                ])]);
+        } else {
+            $farms = FarmerProfile::query()
+                ->select([
+                    'id',
+                    'full_name',
+                    'barangay',
+                    'municipality',
+                    'contact_number',
+                    'farm_lat',
+                    'farm_long',
+                ])
                 ->whereHas('scans.outbreak', fn ($query) => $query->where('status', OutbreakStatusEnum::Active))
-                ->get())
+                ->with([
+                    'scans' => fn ($query) => $query
+                        ->select(['id', 'farmer_id', 'disease_id', 'scan_date'])
+                        ->whereHas('outbreak', fn ($outbreakQuery) => $outbreakQuery
+                            ->where('status', OutbreakStatusEnum::Active))
+                        ->with('disease:id,name')
+                        ->latest('scan_date')
+                        ->latest('id')
+                        ->limit(1),
+                ])
+                ->get();
+        }
+
+        $farms = $farms
             ->values()
-            ->map(fn (FarmerProfile $farm) => [
-                'id' => $farm->id,
-                'name' => $farm->full_name,
-                'lat' => (float) $farm->farm_lat,
-                'lng' => (float) $farm->farm_long,
-            ]);
+            ->map(function (FarmerProfile $farm) use ($isFarmer) {
+                /** @var Scan|null $scan */
+                $scan = $farm->scans->first();
+
+                return [
+                    'id' => $farm->id,
+                    ...($isFarmer ? [] : [
+                        'name' => $farm->full_name,
+                        'contact_number' => $farm->contact_number,
+                    ]),
+                    'barangay' => $farm->barangay,
+                    'municipality' => $farm->municipality->value,
+                    'lat' => (float) $farm->farm_lat,
+                    'lng' => (float) $farm->farm_long,
+                    'scan' => $scan === null ? null : [
+                        'id' => $scan->id,
+                        'disease' => $scan->disease?->name,
+                        'scan_date' => $scan->scan_date === null
+                            ? null
+                            : Carbon::parse($scan->scan_date)->toDateString(),
+                    ],
+                ];
+            });
 
         return Inertia::render('map/index', [
             'outbreaks' => $outbreaks,

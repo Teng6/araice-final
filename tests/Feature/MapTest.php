@@ -54,9 +54,59 @@ test('the map identifies the signed-in farmer municipality', function () {
             ->where('ownMunicipality', 'orion')
             ->has('farms', 1)
             ->where('farms.0.id', $profile->id)
-            ->where('farms.0.name', $profile->full_name)
+            ->where('farms.0.barangay', $profile->barangay)
+            ->where('farms.0.municipality', 'orion')
             ->where('farms.0.lat', 14.52)
-            ->where('farms.0.lng', 120.48));
+            ->where('farms.0.lng', 120.48)
+            ->where('farms.0.scan', null));
+});
+
+test('a farmer map pin contains only their farm and latest scan data', function () {
+    $ownFarm = FarmerProfile::factory()
+        ->inMunicipality(MunicipalityEnum::Orion)
+        ->create([
+            'full_name' => 'Own Farmer Name',
+            'contact_number' => '09111111111',
+            'barangay' => 'Own Barangay',
+        ]);
+    $otherFarm = FarmerProfile::factory()
+        ->inMunicipality(MunicipalityEnum::Orani)
+        ->create([
+            'full_name' => 'Private Other Farmer Name',
+            'contact_number' => '09999999999',
+        ]);
+    Scan::factory()->for($ownFarm, 'farmer')->create([
+        'scan_date' => '2026-09-30 10:00:00',
+    ]);
+    $ownScan = Scan::factory()->for($ownFarm, 'farmer')->create([
+        'scan_date' => '2026-10-01 10:00:00',
+    ]);
+    $otherScan = Scan::factory()->for($otherFarm, 'farmer')->create([
+        'scan_date' => '2026-10-02 10:00:00',
+    ]);
+
+    $response = $this->actingAs($ownFarm->user)
+        ->get(route('map.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('map/index')
+            ->has('farms', 1)
+            ->where('farms.0.id', $ownFarm->id)
+            ->where('farms.0.barangay', 'Own Barangay')
+            ->where('farms.0.municipality', 'orion')
+            ->where('farms.0.scan.id', $ownScan->id)
+            ->where('farms.0.scan.disease', $ownScan->disease->name)
+            ->where('farms.0.scan.scan_date', '2026-10-01')
+            ->missing('farms.0.name')
+            ->missing('farms.0.contact_number')
+            ->missing('farms.1')
+            ->missing('farms.1.scan'));
+
+    $response
+        ->assertDontSee('Private Other Farmer Name')
+        ->assertDontSee('09999999999')
+        ->assertDontSee('2026-10-02');
+    expect($otherScan->id)->not->toBe($ownScan->id);
 });
 
 test('the map does not identify a former farmer municipality for staff', function () {
@@ -136,8 +186,13 @@ test('the map shows only farms with scans linked to active outbreaks for staff',
     $activeOutbreak = Outbreak::factory()->create(['status' => OutbreakStatusEnum::Active]);
     $resolvedOutbreak = Outbreak::factory()->create(['status' => OutbreakStatusEnum::Resolved]);
 
-    Scan::factory()->for($activeFarm, 'farmer')->create([
+    $activeScan = Scan::factory()->for($activeFarm, 'farmer')->create([
         'outbreak_id' => $activeOutbreak->id,
+        'scan_date' => '2026-10-03 10:00:00',
+    ]);
+    $activeScan = Scan::factory()->for($activeFarm, 'farmer')->create([
+        'outbreak_id' => $activeOutbreak->id,
+        'scan_date' => '2026-10-04 10:00:00',
     ]);
     Scan::factory()->for($resolvedFarm, 'farmer')->create([
         'outbreak_id' => $resolvedOutbreak->id,
@@ -153,6 +208,34 @@ test('the map shows only farms with scans linked to active outbreaks for staff',
             ->where('outbreaks.0.id', $activeOutbreak->id)
             ->has('farms', 1)
             ->where('farms.0.id', $activeFarm->id)
+            ->where('farms.0.name', $activeFarm->full_name)
+            ->where('farms.0.contact_number', $activeFarm->contact_number)
+            ->where('farms.0.barangay', $activeFarm->barangay)
+            ->where('farms.0.municipality', $activeFarm->municipality->value)
+            ->where('farms.0.scan.id', $activeScan->id)
+            ->where('farms.0.scan.disease', $activeScan->disease->name)
+            ->where('farms.0.scan.scan_date', '2026-10-04')
             ->where('farms.0.lat', 14.52)
             ->where('farms.0.lng', 120.48));
+});
+
+test('LGU staff map pins include farmer name and contact for active outbreak scans', function () {
+    $lguStaff = User::factory()->create(['role' => UserRole::LguStaff]);
+    $activeFarm = FarmerProfile::factory()->create([
+        'full_name' => 'Mapped Farmer Name',
+        'contact_number' => '09123456789',
+    ]);
+    $activeOutbreak = Outbreak::factory()->create(['status' => OutbreakStatusEnum::Active]);
+    Scan::factory()->for($activeFarm, 'farmer')->create([
+        'outbreak_id' => $activeOutbreak->id,
+    ]);
+
+    $this->actingAs($lguStaff)
+        ->get(route('map.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('map/index')
+            ->has('farms', 1)
+            ->where('farms.0.name', 'Mapped Farmer Name')
+            ->where('farms.0.contact_number', '09123456789'));
 });
