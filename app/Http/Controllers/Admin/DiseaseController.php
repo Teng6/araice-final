@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateDiseaseRequest;
 use App\Models\Disease;
 use App\Models\Outbreak;
 use App\Models\Scan;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -35,7 +36,9 @@ class DiseaseController extends Controller
         Gate::authorize('update', $disease);
 
         return Inertia::render('admin/diseases/edit', [
-            'disease' => $disease,
+            'disease' => $disease->load([
+                'treatments' => fn (HasMany $query) => $query->orderBy('title'),
+            ]),
         ]);
     }
 

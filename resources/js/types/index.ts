@@ -36,11 +36,14 @@ export type DiseaseSummary = {
     treatments_count: number;
 };
 
+export type TreatmentType = 'chemical' | 'biological' | 'cultural' | 'organic';
+
 export interface Treatment {
     id: number;
+    disease_id: number;
     title: string;
     description: string;
-    type: string;
+    type: TreatmentType;
 }
 
 export interface Disease {

@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { update } from '@/actions/App/Http/Controllers/Admin/DiseaseController';
 import { index as encyclopediaIndex } from '@/routes/encyclopedia';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import TreatmentManager from '@/pages/admin/diseases/TreatmentManager.vue';
 import type { Disease } from '@/types';
 
 const props = defineProps<{
@@ -17,6 +18,7 @@ const props = defineProps<{
         | 'history'
         | 'sources'
         | 'image_path'
+        | 'treatments'
     >;
 }>();
 
@@ -244,6 +246,11 @@ function submit() {
                     </button>
                 </div>
             </form>
+
+            <TreatmentManager
+                :disease-id="disease.id"
+                :treatments="disease.treatments"
+            />
         </main>
     </AuthenticatedLayout>
 </template>

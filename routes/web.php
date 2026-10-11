@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DiseaseController as AdminDiseaseController;
+use App\Http\Controllers\Admin\TreatmentController as AdminTreatmentController;
 use App\Http\Controllers\AlertController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EncyclopediaController;
@@ -28,6 +29,12 @@ Route::middleware('auth')->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('diseases', AdminDiseaseController::class)
             ->except(['index', 'show']);
+        Route::post('diseases/{disease}/treatments', [AdminTreatmentController::class, 'store'])
+            ->name('diseases.treatments.store');
+        Route::match(['put', 'patch'], 'treatments/{treatment}', [AdminTreatmentController::class, 'update'])
+            ->name('treatments.update');
+        Route::delete('treatments/{treatment}', [AdminTreatmentController::class, 'destroy'])
+            ->name('treatments.destroy');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
