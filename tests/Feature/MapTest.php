@@ -13,8 +13,12 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 test('the map shows the highest alert severity for each outbreak', function () {
     $user = User::factory()->create(['role' => UserRole::Admin]);
-    $outbreakWithAlerts = Outbreak::factory()->create();
-    $outbreakWithoutAlerts = Outbreak::factory()->create();
+    $outbreakWithAlerts = Outbreak::factory()->create([
+        'municipality' => MunicipalityEnum::Orion,
+    ]);
+    $outbreakWithoutAlerts = Outbreak::factory()->create([
+        'municipality' => MunicipalityEnum::Orani,
+    ]);
 
     Alert::factory()->for($outbreakWithAlerts)->create(['severity' => SeverityEnum::Low]);
     Alert::factory()->for($outbreakWithAlerts)->create(['severity' => SeverityEnum::High]);
@@ -30,6 +34,9 @@ test('the map shows the highest alert severity for each outbreak', function () {
             ->where('outbreaks.0.severity', 'high')
             ->where('outbreaks.1.id', $outbreakWithoutAlerts->id)
             ->where('outbreaks.1.severity', 'low')
+            ->has('municipalityStatuses', 12)
+            ->where('municipalityStatuses.9.severity', 'high')
+            ->where('municipalityStatuses.8.severity', 'low')
             ->where('ownMunicipality', null)
             ->has('farms', 0));
 });
@@ -82,6 +89,8 @@ test('farmers see only active outbreaks and their own farm pin', function () {
         'municipality' => MunicipalityEnum::Orani,
         'status' => OutbreakStatusEnum::Active,
     ]);
+    Alert::factory()->for($otherActiveOutbreak)->create(['severity' => SeverityEnum::Low]);
+    Alert::factory()->for($otherActiveOutbreak)->create(['severity' => SeverityEnum::High]);
     Outbreak::factory()->create([
         'municipality' => MunicipalityEnum::Orion,
         'status' => OutbreakStatusEnum::Resolved,
@@ -97,9 +106,22 @@ test('farmers see only active outbreaks and their own farm pin', function () {
             ->component('map/index')
             ->has('outbreaks', 1)
             ->where('outbreaks.0.id', $ownActiveOutbreak->id)
+            ->where('outbreaks.0.municipality', 'orion')
+            ->where('outbreaks.0.disease', $ownActiveOutbreak->disease->name)
+            ->missing('outbreaks.1')
+            ->has('municipalityStatuses', 12)
+            ->where('municipalityStatuses.8', [
+                'municipality' => 'orani',
+                'severity' => 'high',
+            ])
+            ->where('municipalityStatuses.9', [
+                'municipality' => 'orion',
+                'severity' => 'low',
+            ])
             ->where('ownMunicipality', 'orion')
             ->has('farms', 1)
-            ->where('farms.0.id', $ownFarm->id));
+            ->where('farms.0.id', $ownFarm->id)
+            ->missing('farms.1'));
 });
 
 test('the map shows only farms with scans linked to active outbreaks for staff', function () {
