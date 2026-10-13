@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\MunicipalityEnum;
+use App\Enums\OutbreakStatusEnum;
 use App\Enums\SeverityEnum;
 use App\Enums\UserRole;
 use App\Models\Alert;
@@ -68,7 +69,7 @@ test('farmers receive all municipality summaries and only their own municipality
     }
 });
 
-test('LGU staff and admins receive province-wide details and active outbreak farm pins', function () {
+test('admins receive every farm with coordinates and LGUs receive only active outbreak farm pins', function () {
     $balangaOutbreak = Outbreak::factory()->create([
         'municipality' => MunicipalityEnum::Balanga,
     ]);
@@ -91,6 +92,9 @@ test('LGU staff and admins receive province-wide details and active outbreak far
         'barangay' => 'Orion Barangay',
         'municipality' => MunicipalityEnum::Orion,
     ]);
+    $resolvedFarm = FarmerProfile::factory()->create();
+    $unlinkedFarm = FarmerProfile::factory()->create();
+    $noScansFarm = FarmerProfile::factory()->create();
     Scan::factory()->for($balangaFarm, 'farmer')->create([
         'outbreak_id' => $balangaOutbreak->id,
         'scan_date' => '2026-10-03 10:00:00',
@@ -103,37 +107,64 @@ test('LGU staff and admins receive province-wide details and active outbreak far
         'outbreak_id' => $orionOutbreak->id,
         'scan_date' => '2026-10-02 10:00:00',
     ]);
+    $resolvedOutbreak = Outbreak::factory()->create([
+        'status' => OutbreakStatusEnum::Resolved,
+    ]);
+    Scan::factory()->for($resolvedFarm, 'farmer')->create([
+        'outbreak_id' => $resolvedOutbreak->id,
+    ]);
+    Scan::factory()->for($unlinkedFarm, 'farmer')->create();
+    $latestAnyScan = Scan::factory()->for($balangaFarm, 'farmer')->create([
+        'scan_date' => '2026-10-05 10:00:00',
+    ]);
 
     $lgu = User::factory()->create(['role' => UserRole::LguStaff]);
-    FarmerProfile::factory()->inMunicipality(MunicipalityEnum::Orion)->create([
-        'user_id' => $lgu->id,
-    ]);
     $admin = User::factory()->create(['role' => UserRole::Admin]);
 
-    foreach ([$lgu, $admin] as $user) {
-        $this->app['auth']->forgetGuards();
-        $response = $this->withToken($user->createToken('map')->plainTextToken)
-            ->getJson('/api/map')
-            ->assertOk()
-            ->assertJsonCount(12, 'municipalities')
-            ->assertJsonCount(2, 'outbreaks')
-            ->assertJsonCount(2, 'farms');
+    $lguResponse = $this->withToken($lgu->createToken('map')->plainTextToken)
+        ->getJson('/api/map')
+        ->assertOk()
+        ->assertJsonCount(12, 'municipalities')
+        ->assertJsonCount(2, 'outbreaks')
+        ->assertJsonCount(2, 'farms');
 
-        $municipalities = collect($response->json('municipalities'))->keyBy('slug');
-        $farms = collect($response->json('farms'))->keyBy('id');
+    $lguFarms = collect($lguResponse->json('farms'))->keyBy('id');
 
-        expect($municipalities->get('balanga'))->toBe(['slug' => 'balanga', 'severity' => 'high'])
-            ->and($municipalities->get('orion'))->toBe(['slug' => 'orion', 'severity' => 'medium'])
-            ->and(array_keys($municipalities->get('balanga')))->toBe(['slug', 'severity'])
-            ->and($farms->get($balangaFarm->id)['name'])->toBe('Balanga Pin Farmer')
-            ->and($farms->get($balangaFarm->id)['contact_number'])->toBe('09122222222')
-            ->and($farms->get($balangaFarm->id)['barangay'])->toBe('Balanga Barangay')
-            ->and($farms->get($balangaFarm->id)['municipality'])->toBe('balanga')
-            ->and($farms->get($balangaFarm->id)['scan']['id'])->toBe($latestScan->id)
-            ->and($farms->get($balangaFarm->id)['scan']['disease'])->toBe($latestScan->disease->name)
-            ->and($farms->get($balangaFarm->id)['scan']['scan_date'])->toBe('2026-10-04')
-            ->and($farms->get($orionFarm->id)['scan']['scan_date'])->toBe('2026-10-02');
-    }
+    expect($lguFarms->keys()->all())->toEqualCanonicalizing([$balangaFarm->id, $orionFarm->id])
+        ->and($lguFarms->get($balangaFarm->id)['scan']['id'])->toBe($latestScan->id)
+        ->and($lguFarms->get($balangaFarm->id)['scan']['scan_date'])->toBe('2026-10-04')
+        ->and($lguFarms->get($orionFarm->id)['scan']['scan_date'])->toBe('2026-10-02');
+
+    $this->app['auth']->forgetGuards();
+    $adminResponse = $this->withToken($admin->createToken('map')->plainTextToken)
+        ->getJson('/api/map')
+        ->assertOk()
+        ->assertJsonCount(12, 'municipalities')
+        ->assertJsonCount(2, 'outbreaks')
+        ->assertJsonCount(5, 'farms');
+
+    $municipalities = collect($adminResponse->json('municipalities'))->keyBy('slug');
+    $adminFarms = collect($adminResponse->json('farms'))->keyBy('id');
+
+    expect($municipalities->get('balanga'))->toBe(['slug' => 'balanga', 'severity' => 'high'])
+        ->and($municipalities->get('orion'))->toBe(['slug' => 'orion', 'severity' => 'medium'])
+        ->and(array_keys($municipalities->get('balanga')))->toBe(['slug', 'severity'])
+        ->and($adminFarms->keys()->all())->toEqualCanonicalizing([
+            $balangaFarm->id,
+            $orionFarm->id,
+            $resolvedFarm->id,
+            $unlinkedFarm->id,
+            $noScansFarm->id,
+        ])
+        ->and($adminFarms->get($balangaFarm->id)['name'])->toBe('Balanga Pin Farmer')
+        ->and($adminFarms->get($balangaFarm->id)['contact_number'])->toBe('09122222222')
+        ->and($adminFarms->get($balangaFarm->id)['barangay'])->toBe('Balanga Barangay')
+        ->and($adminFarms->get($balangaFarm->id)['municipality'])->toBe('balanga')
+        ->and($adminFarms->get($balangaFarm->id)['scan']['id'])->toBe($latestAnyScan->id)
+        ->and($adminFarms->get($balangaFarm->id)['scan']['disease'])->toBe($latestAnyScan->disease->name)
+        ->and($adminFarms->get($balangaFarm->id)['scan']['scan_date'])->toBe('2026-10-05')
+        ->and($adminFarms->get($orionFarm->id)['scan']['scan_date'])->toBe('2026-10-02')
+        ->and($adminFarms->get($noScansFarm->id)['scan'])->toBeNull();
 });
 
 test('map endpoint requires authentication', function () {

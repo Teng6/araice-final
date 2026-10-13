@@ -174,7 +174,7 @@ test('farmers see only active outbreaks and their own farm pin', function () {
             ->missing('farms.1'));
 });
 
-test('the map shows only farms with scans linked to active outbreaks for staff', function () {
+test('admins see every farm with coordinates and its latest scan', function () {
     $admin = User::factory()->create(['role' => UserRole::Admin]);
     $activeFarm = FarmerProfile::factory()->create([
         'farm_lat' => 14.52,
@@ -186,7 +186,7 @@ test('the map shows only farms with scans linked to active outbreaks for staff',
     $activeOutbreak = Outbreak::factory()->create(['status' => OutbreakStatusEnum::Active]);
     $resolvedOutbreak = Outbreak::factory()->create(['status' => OutbreakStatusEnum::Resolved]);
 
-    $activeScan = Scan::factory()->for($activeFarm, 'farmer')->create([
+    Scan::factory()->for($activeFarm, 'farmer')->create([
         'outbreak_id' => $activeOutbreak->id,
         'scan_date' => '2026-10-03 10:00:00',
     ]);
@@ -206,7 +206,7 @@ test('the map shows only farms with scans linked to active outbreaks for staff',
             ->component('map/index')
             ->has('outbreaks', 1)
             ->where('outbreaks.0.id', $activeOutbreak->id)
-            ->has('farms', 1)
+            ->has('farms', 4)
             ->where('farms.0.id', $activeFarm->id)
             ->where('farms.0.name', $activeFarm->full_name)
             ->where('farms.0.contact_number', $activeFarm->contact_number)
@@ -216,19 +216,30 @@ test('the map shows only farms with scans linked to active outbreaks for staff',
             ->where('farms.0.scan.disease', $activeScan->disease->name)
             ->where('farms.0.scan.scan_date', '2026-10-04')
             ->where('farms.0.lat', 14.52)
-            ->where('farms.0.lng', 120.48));
+            ->where('farms.0.lng', 120.48)
+            ->where('farms.1.id', $resolvedFarm->id)
+            ->where('farms.1.scan.disease', $resolvedFarm->scans()->first()->disease->name)
+            ->where('farms.2.id', $unlinkedFarm->id)
+            ->where('farms.3.scan', null));
 });
 
-test('LGU staff map pins include farmer name and contact for active outbreak scans', function () {
+test('LGU staff still see only farms with scans linked to active outbreaks', function () {
     $lguStaff = User::factory()->create(['role' => UserRole::LguStaff]);
     $activeFarm = FarmerProfile::factory()->create([
         'full_name' => 'Mapped Farmer Name',
         'contact_number' => '09123456789',
     ]);
+    $resolvedFarm = FarmerProfile::factory()->create();
+    $unlinkedFarm = FarmerProfile::factory()->create();
     $activeOutbreak = Outbreak::factory()->create(['status' => OutbreakStatusEnum::Active]);
+    $resolvedOutbreak = Outbreak::factory()->create(['status' => OutbreakStatusEnum::Resolved]);
     Scan::factory()->for($activeFarm, 'farmer')->create([
         'outbreak_id' => $activeOutbreak->id,
     ]);
+    Scan::factory()->for($resolvedFarm, 'farmer')->create([
+        'outbreak_id' => $resolvedOutbreak->id,
+    ]);
+    Scan::factory()->for($unlinkedFarm, 'farmer')->create();
 
     $this->actingAs($lguStaff)
         ->get(route('map.index'))
@@ -236,6 +247,8 @@ test('LGU staff map pins include farmer name and contact for active outbreak sca
         ->assertInertia(fn (Assert $page) => $page
             ->component('map/index')
             ->has('farms', 1)
+            ->where('farms.0.id', $activeFarm->id)
             ->where('farms.0.name', 'Mapped Farmer Name')
-            ->where('farms.0.contact_number', '09123456789'));
+            ->where('farms.0.contact_number', '09123456789')
+            ->missing('farms.1'));
 });

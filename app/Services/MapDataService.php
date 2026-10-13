@@ -24,6 +24,7 @@ class MapDataService
     public function forUser(User $user): array
     {
         $isFarmer = $user->role === UserRole::Farmer;
+        $isAdmin = $user->role === UserRole::Admin;
         $ownMunicipality = $isFarmer ? $user->farmerProfile?->municipality : null;
 
         $activeOutbreaks = Outbreak::query()
@@ -83,12 +84,24 @@ class MapDataService
                     'farm_lat',
                     'farm_long',
                 ])
-                ->whereHas('scans.outbreak', fn ($query) => $query->where('status', OutbreakStatusEnum::Active))
+                ->when(
+                    $isAdmin,
+                    fn ($query) => $query->whereNotNull('farm_lat')->whereNotNull('farm_long'),
+                    fn ($query) => $query->whereHas(
+                        'scans.outbreak',
+                        fn ($outbreakQuery) => $outbreakQuery->where('status', OutbreakStatusEnum::Active),
+                    ),
+                )
                 ->with([
                     'scans' => fn ($query) => $query
                         ->select(['id', 'farmer_id', 'disease_id', 'scan_date'])
-                        ->whereHas('outbreak', fn ($outbreakQuery) => $outbreakQuery
-                            ->where('status', OutbreakStatusEnum::Active))
+                        ->when(
+                            ! $isAdmin,
+                            fn ($scanQuery) => $scanQuery->whereHas(
+                                'outbreak',
+                                fn ($outbreakQuery) => $outbreakQuery->where('status', OutbreakStatusEnum::Active),
+                            ),
+                        )
                         ->with('disease:id,name')
                         ->latest('scan_date')
                         ->latest('id')
