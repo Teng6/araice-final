@@ -24,15 +24,30 @@ function submit() {
     <Head title="New Report" />
 
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-xl py-6 sm:px-6 lg:px-8">
-            <div class="space-y-4 rounded-lg bg-white p-6 shadow">
+        <main class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+            <div
+                class="mx-auto max-w-3xl space-y-6 rounded-2xl bg-white p-6 shadow-sm sm:p-8"
+            >
                 <div>
-                    <label class="block text-sm font-medium text-gray-700"
-                        >Municipality</label
+                    <h2 class="text-base font-semibold text-[#14391f]">
+                        Report details
+                    </h2>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Choose a municipality, date range, and optional disease.
+                    </p>
+                </div>
+
+                <div>
+                    <label
+                        for="municipality"
+                        class="block text-sm font-medium text-gray-700"
                     >
+                        Municipality
+                    </label>
                     <select
+                        id="municipality"
                         v-model="form.municipality"
-                        class="mt-1 w-full rounded-md border-gray-300"
+                        class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                     >
                         <option value="" disabled>Select municipality</option>
                         <option v-for="m in municipalities" :key="m" :value="m">
@@ -47,15 +62,19 @@ function submit() {
                     </p>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid gap-4 sm:grid-cols-2">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700"
-                            >From</label
+                        <label
+                            for="range_start"
+                            class="block text-sm font-medium text-gray-700"
                         >
+                            From
+                        </label>
                         <input
+                            id="range_start"
                             v-model="form.range_start"
                             type="date"
-                            class="mt-1 w-full rounded-md border-gray-300"
+                            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                         />
                         <p
                             v-if="form.errors.range_start"
@@ -65,13 +84,17 @@ function submit() {
                         </p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700"
-                            >To</label
+                        <label
+                            for="range_end"
+                            class="block text-sm font-medium text-gray-700"
                         >
+                            To
+                        </label>
                         <input
+                            id="range_end"
                             v-model="form.range_end"
                             type="date"
-                            class="mt-1 w-full rounded-md border-gray-300"
+                            class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                         />
                         <p
                             v-if="form.errors.range_end"
@@ -83,12 +106,16 @@ function submit() {
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700"
-                        >Disease (optional)</label
+                    <label
+                        for="disease_id"
+                        class="block text-sm font-medium text-gray-700"
                     >
+                        Disease (optional)
+                    </label>
                     <select
+                        id="disease_id"
                         v-model="form.disease_id"
-                        class="mt-1 w-full rounded-md border-gray-300"
+                        class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                     >
                         <option value="">All diseases</option>
                         <option v-for="d in diseases" :key="d.id" :value="d.id">
@@ -103,15 +130,17 @@ function submit() {
                     </p>
                 </div>
 
-                <button
-                    type="button"
-                    :disabled="form.processing"
-                    class="rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
-                    @click="submit"
-                >
-                    Generate Report
-                </button>
+                <div class="flex justify-end border-t border-gray-100 pt-5">
+                    <button
+                        type="button"
+                        :disabled="form.processing"
+                        class="inline-flex items-center rounded-full bg-[#14391f] px-5 py-2.5 text-sm font-semibold text-[#FBEB9A] shadow-sm transition hover:bg-[#0f2d19] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14391f] disabled:cursor-not-allowed disabled:opacity-50"
+                        @click="submit"
+                    >
+                        Generate report
+                    </button>
+                </div>
             </div>
-        </div>
+        </main>
     </AuthenticatedLayout>
 </template>

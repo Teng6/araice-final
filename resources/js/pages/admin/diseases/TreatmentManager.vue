@@ -20,6 +20,13 @@ const treatmentTypes: { value: TreatmentType; label: string }[] = [
     { value: 'organic', label: 'Organic' },
 ];
 
+const treatmentTypeClasses: Record<TreatmentType, string> = {
+    chemical: 'bg-orange-100 text-orange-800',
+    biological: 'bg-blue-100 text-blue-800',
+    cultural: 'bg-green-100 text-green-800',
+    organic: 'bg-yellow-100 text-yellow-800',
+};
+
 const addForm = useForm({
     title: '',
     description: '',
@@ -84,13 +91,13 @@ function removeTreatment(treatment: Treatment) {
 
 <template>
     <section
-        class="space-y-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+        class="space-y-6 rounded-2xl bg-white p-6 shadow-sm sm:p-8"
         aria-labelledby="treatments-heading"
     >
         <div>
             <h2
                 id="treatments-heading"
-                class="text-lg font-semibold text-gray-900"
+                class="text-lg font-semibold text-[#14391f]"
             >
                 Treatments
             </h2>
@@ -114,7 +121,10 @@ function removeTreatment(treatment: Treatment) {
                                     {{ treatment.title }}
                                 </h3>
                                 <span
-                                    class="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700"
+                                    class="rounded-full px-2.5 py-0.5 text-xs font-medium capitalize"
+                                    :class="
+                                        treatmentTypeClasses[treatment.type]
+                                    "
                                 >
                                     {{
                                         treatmentTypes.find(
@@ -133,7 +143,7 @@ function removeTreatment(treatment: Treatment) {
                         <div class="flex shrink-0 items-center gap-2">
                             <button
                                 type="button"
-                                class="rounded-md px-3 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-50"
+                                class="rounded-full px-3 py-2 text-sm font-semibold text-[#14391f] transition hover:bg-[#FBF8EA]"
                                 @click="startEditing(treatment)"
                             >
                                 Edit
@@ -141,7 +151,7 @@ function removeTreatment(treatment: Treatment) {
                             <button
                                 type="button"
                                 :disabled="deleteForm.processing"
-                                class="rounded-md px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                class="rounded-full px-3 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
                                 @click="removeTreatment(treatment)"
                             >
                                 Delete
@@ -151,7 +161,7 @@ function removeTreatment(treatment: Treatment) {
 
                     <form
                         v-else
-                        class="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4"
+                        class="space-y-4 rounded-2xl bg-[#FBF8EA] p-4"
                         @submit.prevent="saveTreatment"
                     >
                         <div>
@@ -167,7 +177,7 @@ function removeTreatment(treatment: Treatment) {
                                 type="text"
                                 required
                                 maxlength="255"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
+                                class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                             />
                             <p
                                 v-if="editForm.errors.title"
@@ -188,7 +198,7 @@ function removeTreatment(treatment: Treatment) {
                                 v-model="editForm.description"
                                 required
                                 rows="3"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
+                                class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                             ></textarea>
                             <p
                                 v-if="editForm.errors.description"
@@ -208,7 +218,7 @@ function removeTreatment(treatment: Treatment) {
                                 :id="`edit-treatment-type-${treatment.id}`"
                                 v-model="editForm.type"
                                 required
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
+                                class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                             >
                                 <option value="" disabled>
                                     Select treatment type
@@ -231,7 +241,7 @@ function removeTreatment(treatment: Treatment) {
                         <div class="flex items-center justify-end gap-3">
                             <button
                                 type="button"
-                                class="rounded-md px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
+                                class="rounded-full px-4 py-2 text-sm font-semibold text-[#14391f] transition hover:bg-white"
                                 @click="cancelEditing"
                             >
                                 Cancel
@@ -239,7 +249,7 @@ function removeTreatment(treatment: Treatment) {
                             <button
                                 type="submit"
                                 :disabled="editForm.processing"
-                                class="inline-flex items-center rounded-md bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                class="inline-flex items-center rounded-full bg-[#14391f] px-5 py-2.5 text-sm font-semibold text-[#FBEB9A] shadow-sm transition hover:bg-[#0f2d19] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14391f] disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 Save
                             </button>
@@ -253,7 +263,7 @@ function removeTreatment(treatment: Treatment) {
             class="space-y-4 border-t border-gray-100 pt-5"
             @submit.prevent="addTreatment"
         >
-            <h3 class="font-medium text-gray-900">Add treatment</h3>
+            <h3 class="font-medium text-[#14391f]">Add treatment</h3>
             <div>
                 <label
                     for="new-treatment-title"
@@ -267,7 +277,7 @@ function removeTreatment(treatment: Treatment) {
                     type="text"
                     required
                     maxlength="255"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
+                    class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                 />
                 <p
                     v-if="addForm.errors.title"
@@ -288,7 +298,7 @@ function removeTreatment(treatment: Treatment) {
                     v-model="addForm.description"
                     required
                     rows="3"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
+                    class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                 ></textarea>
                 <p
                     v-if="addForm.errors.description"
@@ -308,7 +318,7 @@ function removeTreatment(treatment: Treatment) {
                     id="new-treatment-type"
                     v-model="addForm.type"
                     required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
+                    class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                 >
                     <option value="" disabled>Select treatment type</option>
                     <option
@@ -327,7 +337,7 @@ function removeTreatment(treatment: Treatment) {
                 <button
                     type="submit"
                     :disabled="addForm.processing"
-                    class="inline-flex items-center rounded-md bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    class="inline-flex items-center rounded-full bg-[#14391f] px-5 py-2.5 text-sm font-semibold text-[#FBEB9A] shadow-sm transition hover:bg-[#0f2d19] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14391f] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     Add treatment
                 </button>

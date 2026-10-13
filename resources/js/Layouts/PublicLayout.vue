@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
@@ -40,7 +41,11 @@ const props = defineProps<{
                     <div
                         class="grid h-16 grid-cols-3 items-center px-4 sm:px-6"
                     >
-                        <Link href="/" class="text-lg font-bold text-[#14391f]">
+                        <Link
+                            href="/"
+                            class="flex items-center gap-2 text-lg font-bold text-[#14391f]"
+                        >
+                            <ApplicationLogo class="h-8 w-8" />
                             A-RAICE
                         </Link>
 
@@ -94,8 +99,9 @@ const props = defineProps<{
                         >
                             <Link
                                 href="/"
-                                class="text-lg font-bold text-[#14391f]"
+                                class="flex items-center gap-2 text-lg font-bold text-[#14391f]"
                             >
+                                <ApplicationLogo class="h-8 w-8" />
                                 A-RAICE
                             </Link>
                             <Link

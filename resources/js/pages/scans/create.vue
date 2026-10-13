@@ -105,11 +105,11 @@ onBeforeUnmount(() => {
     <Head title="New Scan" />
 
     <AuthenticatedLayout>
-        <main class="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+        <main class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
             <nav aria-label="Breadcrumb" class="text-sm">
                 <Link
                     :href="scansIndex().url"
-                    class="font-medium text-emerald-700 hover:text-emerald-800"
+                    class="font-medium text-[#14391f] hover:underline"
                 >
                     Scans
                 </Link>
@@ -120,11 +120,9 @@ onBeforeUnmount(() => {
             <div
                 class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]"
             >
-                <section
-                    class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
-                >
+                <section class="rounded-2xl bg-white p-6 shadow-sm">
                     <div>
-                        <h3 class="text-base font-semibold text-gray-900">
+                        <h3 class="text-base font-semibold text-[#14391f]">
                             Scan photo
                         </h3>
                         <p class="mt-1 text-sm text-gray-500">
@@ -137,8 +135,8 @@ onBeforeUnmount(() => {
                         class="mt-5 flex min-h-64 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition"
                         :class="
                             isDraggingPhoto
-                                ? 'border-emerald-600 bg-emerald-50 ring-4 ring-emerald-100'
-                                : 'border-gray-300 bg-gray-50 hover:border-emerald-500 hover:bg-emerald-50/40'
+                                ? 'border-[#14391f] bg-[#FBF8EA] ring-4 ring-[#FBEB9A]/60'
+                                : 'border-gray-300 bg-[#FBF8EA] hover:border-[#14391f] hover:bg-[#FBEB9A]/20'
                         "
                         @dragenter.prevent="handleDragEnter"
                         @dragover.prevent
@@ -153,13 +151,13 @@ onBeforeUnmount(() => {
                         />
                         <template v-else>
                             <span
-                                class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-xl font-semibold text-emerald-800"
+                                class="flex h-12 w-12 items-center justify-center rounded-full bg-[#FBEB9A] text-xl font-semibold text-[#14391f]"
                                 aria-hidden="true"
                             >
                                 +
                             </span>
                             <span
-                                class="mt-4 text-sm font-semibold text-gray-900"
+                                class="mt-4 text-sm font-semibold text-[#14391f]"
                             >
                                 Choose a photo
                             </span>
@@ -185,11 +183,11 @@ onBeforeUnmount(() => {
                 </section>
 
                 <form
-                    class="space-y-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+                    class="space-y-6 rounded-2xl bg-white p-6 shadow-sm"
                     @submit.prevent="submit"
                 >
                     <div>
-                        <h3 class="text-base font-semibold text-gray-900">
+                        <h3 class="text-base font-semibold text-[#14391f]">
                             Scan details
                         </h3>
                         <p class="mt-1 text-sm text-gray-500">
@@ -208,7 +206,7 @@ onBeforeUnmount(() => {
                             <select
                                 id="farmer_id"
                                 v-model="form.farmer_id"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
+                                class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                             >
                                 <option :value="null" disabled>
                                     Select farmer
@@ -238,7 +236,7 @@ onBeforeUnmount(() => {
                         <button
                             type="submit"
                             :disabled="form.processing"
-                            class="inline-flex items-center rounded-md bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            class="inline-flex items-center rounded-full bg-[#14391f] px-5 py-2.5 text-sm font-semibold text-[#FBEB9A] shadow-sm transition hover:bg-[#0f2d19] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14391f] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {{ form.processing ? 'Analyzing…' : 'Submit scan' }}
                         </button>

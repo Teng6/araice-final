@@ -36,7 +36,7 @@ function isCurrent(path: string, includeChildren = false): boolean {
 <template>
     <div>
         <div class="min-h-screen bg-[#F4F2EA]">
-            <div class="bg-[#14391f] pb-6">
+            <div class="bg-[#14391f] pb-6 print:hidden">
                 <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6">
                     <nav class="rounded-2xl bg-white shadow-sm">
                         <!-- Primary Navigation Menu -->

@@ -21,16 +21,20 @@ const submit = () => {
 </script>
 
 <template>
-    <GuestLayout>
+    <GuestLayout class="max-w-md">
         <Head title="Forgot Password" />
 
-        <div class="mb-4 text-sm text-gray-600">
-            Forgot your password? No problem. Just let us know your email
-            address and we will email you a password reset link that will allow
-            you to choose a new one.
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold tracking-tight text-white">
+                Forgot password?
+            </h1>
+            <p class="mt-2 text-sm leading-6 text-white/75">
+                Enter your email and we’ll send you a link to reset your
+                password.
+            </p>
         </div>
 
-        <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
+        <div v-if="status" class="mb-4 text-sm font-medium text-[#FBEB9A]">
             {{ status }}
         </div>
 
@@ -53,6 +57,7 @@ const submit = () => {
 
             <div class="mt-4 flex items-center justify-end">
                 <PrimaryButton
+                    variant="auth"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >

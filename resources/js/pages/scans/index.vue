@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { create, show } from '@/actions/App/Http/Controllers/ScanController';
+import { formatDate } from '@/lib/formatDate';
 
 interface Scan {
     id: number;
@@ -42,7 +43,7 @@ const statusClasses: Record<Scan['status'], string> = {
             <div class="flex justify-end">
                 <Link
                     :href="create().url"
-                    class="inline-flex items-center rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+                    class="inline-flex items-center rounded-full bg-[#14391f] px-5 py-2 text-sm font-semibold text-[#FBEB9A] transition hover:bg-[#0f2d19] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14391f]"
                 >
                     New scan
                 </Link>
@@ -50,15 +51,15 @@ const statusClasses: Record<Scan['status'], string> = {
 
             <section
                 v-if="scans.data.length === 0"
-                class="rounded-xl border border-gray-200 bg-white px-6 py-16 text-center shadow-sm"
+                class="rounded-2xl bg-white px-6 py-16 text-center shadow-sm"
             >
                 <div
-                    class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-700"
+                    class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#FBF8EA] text-[#14391f]"
                     aria-hidden="true"
                 >
                     <span class="text-xl font-semibold">+</span>
                 </div>
-                <h3 class="mt-4 text-base font-semibold text-gray-900">
+                <h3 class="mt-4 text-base font-semibold text-[#14391f]">
                     No scans yet
                 </h3>
                 <p class="mx-auto mt-1 max-w-md text-sm text-gray-500">
@@ -66,7 +67,7 @@ const statusClasses: Record<Scan['status'], string> = {
                 </p>
                 <Link
                     :href="create().url"
-                    class="mt-6 inline-flex items-center rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-800"
+                    class="mt-6 inline-flex items-center rounded-full bg-[#14391f] px-5 py-2 text-sm font-semibold text-[#FBEB9A] shadow-sm transition hover:bg-[#0f2d19]"
                 >
                     Start a scan
                 </Link>
@@ -74,14 +75,14 @@ const statusClasses: Record<Scan['status'], string> = {
 
             <section
                 v-else
-                class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+                class="overflow-hidden rounded-2xl bg-white shadow-sm"
                 aria-label="Scan history"
             >
                 <div
-                    class="flex items-center justify-between border-b border-gray-200 px-6 py-4"
+                    class="flex items-center justify-between border-b border-gray-100 px-6 py-4"
                 >
                     <div>
-                        <h3 class="font-semibold text-gray-900">All scans</h3>
+                        <h3 class="font-semibold text-[#14391f]">All scans</h3>
                         <p class="mt-1 text-sm text-gray-500">
                             Recent analyses and their results
                         </p>
@@ -92,7 +93,7 @@ const statusClasses: Record<Scan['status'], string> = {
                         class="min-w-full divide-y divide-gray-200 text-left text-sm"
                     >
                         <thead
-                            class="bg-gray-50 text-xs font-semibold tracking-wide text-gray-500 uppercase"
+                            class="bg-[#FBF8EA] text-xs font-semibold tracking-wide text-gray-600 uppercase"
                         >
                             <tr>
                                 <th scope="col" class="px-6 py-3">Scan</th>
@@ -118,14 +119,14 @@ const statusClasses: Record<Scan['status'], string> = {
                             <tr
                                 v-for="scan in scans.data"
                                 :key="scan.id"
-                                class="transition hover:bg-gray-50"
+                                class="transition hover:bg-[#FBF8EA]/70"
                             >
                                 <td
                                     class="px-6 py-4 font-medium whitespace-nowrap"
                                 >
                                     <Link
                                         :href="show(scan.id).url"
-                                        class="text-emerald-700 hover:text-emerald-800 hover:underline"
+                                        class="text-[#14391f] hover:underline"
                                     >
                                         #{{ scan.id }}
                                     </Link>
@@ -167,12 +168,12 @@ const statusClasses: Record<Scan['status'], string> = {
                                 <td
                                     class="px-6 py-4 whitespace-nowrap text-gray-600"
                                 >
-                                    {{ scan.scan_date }}
+                                    {{ formatDate(scan.scan_date) }}
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <Link
                                         :href="show(scan.id).url"
-                                        class="font-medium text-emerald-700 hover:text-emerald-800 hover:underline"
+                                        class="font-medium text-[#14391f] hover:underline"
                                     >
                                         View
                                     </Link>
@@ -195,8 +196,8 @@ const statusClasses: Record<Scan['status'], string> = {
                         class="rounded-md border px-3 py-2 text-sm transition"
                         :class="
                             link.active
-                                ? 'border-emerald-700 bg-emerald-700 text-white'
-                                : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                                ? 'border-[#14391f] bg-[#14391f] text-[#FBEB9A]'
+                                : 'border-gray-200 bg-white text-gray-700 hover:bg-[#FBF8EA]'
                         "
                         v-html="link.label"
                     />

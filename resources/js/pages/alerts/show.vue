@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { index } from '@/actions/App/Http/Controllers/AlertController';
+import { formatDate } from '@/lib/formatDate';
 
 type Severity = 'low' | 'medium' | 'high';
 
@@ -18,43 +19,40 @@ interface AlertDetail {
 defineProps<{ alert: AlertDetail }>();
 
 const severityClasses: Record<Severity, string> = {
-    low: 'bg-yellow-100 text-yellow-800',
-    medium: 'bg-orange-100 text-orange-700',
-    high: 'bg-red-100 text-red-700',
+    low: 'bg-yellow-100 text-yellow-800 ring-yellow-600/20',
+    medium: 'bg-orange-100 text-orange-800 ring-orange-600/20',
+    high: 'bg-red-100 text-red-800 ring-red-600/20',
 };
-
-function formatDate(value: string | null): string {
-    return value ? new Date(value).toLocaleString() : '—';
-}
 </script>
 
 <template>
     <Head title="Alert" />
 
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-3xl py-6 sm:px-6 lg:px-8">
+        <main class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
             <Link
                 :href="index().url"
-                class="mb-4 inline-block text-sm text-indigo-600 hover:underline"
+                class="inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#14391f] shadow-sm transition hover:bg-[#FBF8EA]"
             >
                 &larr; Back to alerts
             </Link>
-            <div class="rounded-lg bg-white p-6 shadow">
+
+            <section class="rounded-2xl bg-white p-6 shadow-sm sm:p-8">
                 <div class="flex flex-wrap items-center gap-2">
                     <span
-                        class="rounded-full px-3 py-1 text-xs font-medium capitalize"
+                        class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium capitalize ring-1 ring-inset"
                         :class="severityClasses[alert.severity]"
                     >
                         {{ alert.severity }} severity
                     </span>
                     <span
-                        class="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 capitalize"
+                        class="rounded-full bg-[#FBF8EA] px-3 py-1 text-xs font-medium text-[#14391f] capitalize"
                     >
                         {{ alert.municipality }}
                     </span>
                 </div>
 
-                <p class="mt-4 text-2xl font-semibold text-gray-900">
+                <p class="mt-4 text-2xl font-semibold text-[#14391f]">
                     {{ alert.disease ?? 'Unknown disease' }}
                 </p>
 
@@ -78,7 +76,7 @@ function formatDate(value: string | null): string {
                         </dd>
                     </div>
                 </dl>
-            </div>
-        </div>
+            </section>
+        </main>
     </AuthenticatedLayout>
 </template>

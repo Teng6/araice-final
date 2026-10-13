@@ -42,11 +42,20 @@ function submit() {
     <Head title="Edit disease" />
 
     <AuthenticatedLayout>
-        <main class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+        <main class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
             <form
-                class="space-y-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+                class="mx-auto max-w-4xl space-y-6 rounded-2xl bg-white p-6 shadow-sm sm:p-8"
                 @submit.prevent="submit"
             >
+                <div>
+                    <h1 class="text-lg font-semibold text-[#14391f]">
+                        Edit disease
+                    </h1>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Update the disease details in the encyclopedia.
+                    </p>
+                </div>
+
                 <div>
                     <label
                         for="name"
@@ -59,7 +68,7 @@ function submit() {
                         v-model="form.name"
                         type="text"
                         required
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
+                        class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                     />
                     <p
                         v-if="form.errors.name"
@@ -81,7 +90,7 @@ function submit() {
                         v-model="form.description"
                         required
                         rows="4"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
+                        class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                     ></textarea>
                     <p
                         v-if="form.errors.description"
@@ -104,7 +113,7 @@ function submit() {
                         v-model="form.prevention_tips"
                         required
                         rows="4"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
+                        class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                     ></textarea>
                     <p
                         v-if="form.errors.prevention_tips"
@@ -125,7 +134,7 @@ function submit() {
                         id="causes"
                         v-model="form.causes"
                         rows="3"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
+                        class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                     ></textarea>
                     <p
                         v-if="form.errors.causes"
@@ -146,7 +155,7 @@ function submit() {
                         id="symptoms"
                         v-model="form.symptoms"
                         rows="3"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
+                        class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                     ></textarea>
                     <p
                         v-if="form.errors.symptoms"
@@ -167,7 +176,7 @@ function submit() {
                         id="history"
                         v-model="form.history"
                         rows="3"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
+                        class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                     ></textarea>
                     <p
                         v-if="form.errors.history"
@@ -188,7 +197,7 @@ function submit() {
                         id="sources"
                         v-model="form.sources"
                         rows="3"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
+                        class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                     ></textarea>
                     <p
                         v-if="form.errors.sources"
@@ -209,7 +218,7 @@ function submit() {
                         id="image_path"
                         v-model="form.image_path"
                         type="text"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-600 focus:ring-emerald-600"
+                        class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-[#14391f] focus:ring-[#14391f]"
                     />
                     <p class="mt-1 text-sm text-gray-500">
                         e.g. images/sheath_blight.jpg
@@ -227,14 +236,14 @@ function submit() {
                 >
                     <Link
                         :href="encyclopediaIndex().url"
-                        class="rounded-md px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
+                        class="rounded-full px-4 py-2 text-sm font-semibold text-[#14391f] transition hover:bg-[#FBF8EA]"
                     >
                         Cancel
                     </Link>
                     <button
                         type="submit"
                         :disabled="form.processing"
-                        class="inline-flex items-center rounded-md bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        class="inline-flex items-center rounded-full bg-[#14391f] px-5 py-2.5 text-sm font-semibold text-[#FBEB9A] shadow-sm transition hover:bg-[#0f2d19] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14391f] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         Save
                     </button>

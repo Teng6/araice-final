@@ -26,9 +26,7 @@ defineOptions({ inheritAttrs: false });
 
         <div class="relative z-30 flex w-full flex-col items-center">
             <Link href="/" class="mb-2">
-                <ApplicationLogo
-                    class="h-12 w-12 fill-current text-[#FBEB9A]"
-                />
+                <ApplicationLogo class="h-12 w-12 brightness-0 invert" />
             </Link>
 
             <Link

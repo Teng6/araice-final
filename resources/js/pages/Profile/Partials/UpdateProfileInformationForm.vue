@@ -23,7 +23,7 @@ const form = useForm({
 <template>
     <section>
         <header>
-            <h2 class="text-lg font-medium text-gray-900">
+            <h2 class="text-lg font-semibold text-[#14391f]">
                 Profile Information
             </h2>
 
@@ -74,7 +74,7 @@ const form = useForm({
                         :href="sendVerification().url"
                         method="post"
                         as="button"
-                        class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+                        class="rounded-md text-sm font-medium text-[#14391f] underline underline-offset-4 hover:text-[#0f2d19] focus:ring-2 focus:ring-[#14391f] focus:ring-offset-2 focus:outline-none"
                     >
                         Click here to re-send the verification email.
                     </Link>
@@ -82,14 +82,16 @@ const form = useForm({
 
                 <div
                     v-show="status === 'verification-link-sent'"
-                    class="mt-2 text-sm font-medium text-green-600"
+                    class="mt-2 text-sm font-medium text-[#14391f]"
                 >
                     A new verification link has been sent to your email address.
                 </div>
             </div>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
+                <PrimaryButton variant="app" :disabled="form.processing">
+                    Save
+                </PrimaryButton>
 
                 <Transition
                     enter-active-class="transition ease-in-out"

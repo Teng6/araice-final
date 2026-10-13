@@ -5,10 +5,11 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createApp, createSSRApp, DefineComponent, h } from 'vue';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'A-RAICE';
 
 void createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
+    title: (title) =>
+        title && title !== appName ? `${title} - ${appName}` : appName,
     resolve: (name) =>
         resolvePageComponent(
             `./pages/${name}.vue`,

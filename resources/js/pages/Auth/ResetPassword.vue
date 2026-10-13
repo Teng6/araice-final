@@ -29,8 +29,17 @@ const submit = () => {
 </script>
 
 <template>
-    <GuestLayout>
+    <GuestLayout class="max-w-md">
         <Head title="Reset Password" />
+
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold tracking-tight text-white">
+                Reset password
+            </h1>
+            <p class="mt-2 text-sm text-white/75">
+                Choose a new password for your account.
+            </p>
+        </div>
 
         <form @submit.prevent="submit">
             <div>
@@ -87,6 +96,7 @@ const submit = () => {
 
             <div class="mt-4 flex items-center justify-end">
                 <PrimaryButton
+                    variant="auth"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >

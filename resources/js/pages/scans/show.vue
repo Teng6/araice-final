@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { index as scansIndex } from '@/actions/App/Http/Controllers/ScanController';
+import { formatDate } from '@/lib/formatDate';
 import type { Scan } from '@/types';
 
 defineProps<{ scan: Scan }>();
@@ -21,7 +22,7 @@ const statusClasses: Record<Scan['status'], string> = {
         <main class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
             <Link
                 :href="scansIndex().url"
-                class="inline-block text-sm font-medium text-emerald-700 hover:text-emerald-800"
+                class="inline-flex items-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#14391f] shadow-sm transition hover:bg-[#FBF8EA]"
             >
                 &larr; Back to scans
             </Link>
@@ -30,10 +31,10 @@ const statusClasses: Record<Scan['status'], string> = {
                 class="grid items-start gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]"
             >
                 <section
-                    class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+                    class="overflow-hidden rounded-2xl bg-white shadow-sm"
                     aria-label="Scan photo"
                 >
-                    <div class="border-b border-gray-200 px-6 py-4">
+                    <div class="border-b border-gray-100 px-6 py-4">
                         <div
                             class="flex flex-wrap items-center justify-between gap-3"
                         >
@@ -42,7 +43,7 @@ const statusClasses: Record<Scan['status'], string> = {
                                     Scan photo
                                 </h3>
                                 <p class="mt-1 text-sm text-gray-500">
-                                    Uploaded {{ scan.scan_date }}
+                                    Uploaded {{ formatDate(scan.scan_date) }}
                                 </p>
                             </div>
                             <span
@@ -54,7 +55,7 @@ const statusClasses: Record<Scan['status'], string> = {
                         </div>
                     </div>
                     <div
-                        class="flex min-h-96 items-center justify-center bg-gray-50 p-4"
+                        class="flex min-h-96 items-center justify-center bg-[#FBF8EA] p-4"
                     >
                         <img
                             :src="`/storage/${scan.image_url}`"
@@ -65,9 +66,7 @@ const statusClasses: Record<Scan['status'], string> = {
                 </section>
 
                 <div class="space-y-6">
-                    <section
-                        class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
-                    >
+                    <section class="rounded-2xl bg-white p-6 shadow-sm">
                         <h3 class="font-semibold text-gray-900">
                             Analysis summary
                         </h3>
@@ -159,11 +158,11 @@ const statusClasses: Record<Scan['status'], string> = {
 
                     <section
                         v-if="scan.status === 'completed' && scan.disease"
-                        class="space-y-5 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+                        class="space-y-5 rounded-2xl bg-white p-6 shadow-sm"
                     >
                         <div>
                             <p
-                                class="text-xs font-semibold tracking-wide text-emerald-700 uppercase"
+                                class="text-xs font-semibold tracking-wide text-[#14391f] uppercase"
                             >
                                 Disease information
                             </p>
@@ -235,7 +234,7 @@ const statusClasses: Record<Scan['status'], string> = {
                                 <li
                                     v-for="treatment in scan.disease.treatments"
                                     :key="treatment.id"
-                                    class="rounded-lg bg-gray-50 p-4"
+                                    class="rounded-xl bg-[#FBF8EA] p-4"
                                 >
                                     <div
                                         class="flex items-start justify-between gap-3"
