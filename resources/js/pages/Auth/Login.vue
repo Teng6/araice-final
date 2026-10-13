@@ -31,10 +31,19 @@ const submit = () => {
 </script>
 
 <template>
-    <GuestLayout>
+    <GuestLayout class="max-w-md">
         <Head title="Log in" />
 
-        <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold tracking-tight text-white">
+                Welcome back
+            </h1>
+            <p class="mt-1 text-sm text-white/75">
+                Sign in to continue to your account.
+            </p>
+        </div>
+
+        <div v-if="status" class="mb-4 text-sm font-medium text-[#FBEB9A]">
             {{ status }}
         </div>
 
@@ -73,14 +82,16 @@ const submit = () => {
             <div class="mt-4 block">
                 <label class="flex items-center">
                     <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-sm text-gray-600">Remember me</span>
+                    <span class="ms-2 text-sm text-white/80">Remember me</span>
                 </label>
             </div>
 
-            <div class="mt-4 flex items-center justify-end">
+            <div
+                class="mt-5 flex flex-wrap items-center justify-between gap-x-4 gap-y-3"
+            >
                 <Link
                     :href="register().url"
-                    class="me-auto rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+                    class="rounded-md text-sm font-medium text-white/85 underline underline-offset-4 transition hover:text-[#FBEB9A] focus:ring-2 focus:ring-[#FBEB9A] focus:outline-none"
                 >
                     Register
                 </Link>
@@ -88,13 +99,15 @@ const submit = () => {
                 <Link
                     v-if="canResetPassword"
                     :href="passwordRequest().url"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+                    class="rounded-md text-sm font-medium text-white/85 underline underline-offset-4 transition hover:text-[#FBEB9A] focus:ring-2 focus:ring-[#FBEB9A] focus:outline-none"
                 >
                     Forgot your password?
                 </Link>
+            </div>
 
+            <div class="mt-5">
                 <PrimaryButton
-                    class="ms-4"
+                    variant="auth"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >

@@ -10,9 +10,15 @@ const user = computed(() => page.props.auth.user);
 
 <template>
     <AuthenticatedLayout v-if="user">
+        <template v-if="$slots.header" #header>
+            <slot name="header" />
+        </template>
         <slot />
     </AuthenticatedLayout>
     <PublicLayout v-else>
+        <template v-if="$slots.header" #header>
+            <slot name="header" />
+        </template>
         <slot />
     </PublicLayout>
 </template>

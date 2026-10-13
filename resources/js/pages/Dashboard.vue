@@ -7,6 +7,7 @@ import { index as encyclopediaIndex } from '@/actions/App/Http/Controllers/Encyc
 import { index as outbreaksIndex } from '@/actions/App/Http/Controllers/OutbreakController';
 import { index as reportsIndex } from '@/actions/App/Http/Controllers/ReportController';
 import { create as scansCreate } from '@/actions/App/Http/Controllers/ScanController';
+import { formatDate } from '@/lib/formatDate';
 import type {
     AdminStats,
     ActiveOutbreak,
@@ -36,62 +37,50 @@ const severityClasses: Record<ActiveOutbreak['severity'], string> = {
     <Head title="Dashboard" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl leading-tight font-semibold text-gray-800">
-                Dashboard
-            </h2>
-        </template>
-
         <main
             v-if="props.scans_count !== undefined"
             class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8"
         >
-            <div class="flex items-center justify-between gap-4">
-                <div>
-                    <p class="text-sm font-medium text-gray-500">Workspace</p>
-                    <h2 class="text-xl font-semibold text-gray-900">
-                        Farmer dashboard
-                    </h2>
-                </div>
+            <div class="flex justify-end">
                 <Link
                     :href="scansCreate().url"
-                    class="inline-flex items-center rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+                    class="inline-flex items-center rounded-full bg-[#14391f] px-5 py-2 text-sm font-semibold text-[#FBEB9A] transition hover:bg-[#0f2d19] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14391f]"
                 >
                     New scan
                 </Link>
             </div>
 
             <section
-                class="grid gap-4 sm:grid-cols-2"
+                class="grid gap-4 sm:grid-cols-2 lg:grid-cols-2"
                 aria-label="Dashboard summary"
             >
-                <article
-                    class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
-                >
-                    <p class="text-sm font-medium text-gray-500">Total scans</p>
-                    <p class="mt-2 text-3xl font-semibold text-gray-900">
+                <article class="rounded-2xl bg-[#14391f] p-6 shadow-sm">
+                    <p class="text-sm font-medium text-white/75">Total scans</p>
+                    <p class="mt-2 text-3xl font-bold text-[#FBEB9A]">
                         {{ props.scans_count }}
                     </p>
                 </article>
 
                 <Link
                     :href="alertsIndex().url"
-                    class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition hover:border-emerald-300 hover:shadow-md"
+                    class="rounded-2xl bg-white p-6 shadow-sm transition hover:shadow-md"
                 >
                     <p class="text-sm font-medium text-gray-500">
                         Unread alerts
                     </p>
-                    <p class="mt-2 text-3xl font-semibold text-emerald-700">
+                    <p class="mt-2 text-3xl font-bold text-[#14391f]">
                         {{ page.props.unread_alerts_count }}
                     </p>
-                    <span class="mt-2 block text-sm text-emerald-700">
+                    <span
+                        class="mt-2 block text-sm text-[#14391f] hover:underline"
+                    >
                         View alerts
                     </span>
                 </Link>
             </section>
 
             <section
-                class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+                class="rounded-2xl bg-white p-6 shadow-sm"
                 aria-label="Municipality outbreak status"
             >
                 <h3 class="font-semibold text-gray-900">
@@ -99,8 +88,12 @@ const severityClasses: Record<ActiveOutbreak['severity'], string> = {
                 </h3>
                 <p
                     v-if="!props.active_outbreak"
-                    class="mt-3 text-sm text-gray-600"
+                    class="mt-3 flex items-center gap-2 text-sm text-gray-600"
                 >
+                    <span
+                        class="h-2 w-2 rounded-full bg-green-600"
+                        aria-hidden="true"
+                    ></span>
                     No active outbreaks in your municipality
                 </p>
                 <div v-else class="mt-3 flex flex-wrap items-center gap-3">
@@ -114,7 +107,8 @@ const severityClasses: Record<ActiveOutbreak['severity'], string> = {
                         {{ props.active_outbreak.severity }} severity
                     </span>
                     <span class="text-sm text-gray-500">
-                        Started {{ props.active_outbreak.started_at ?? '—' }}
+                        Started
+                        {{ formatDate(props.active_outbreak.started_at) }}
                     </span>
                 </div>
             </section>
@@ -126,13 +120,6 @@ const severityClasses: Record<ActiveOutbreak['severity'], string> = {
             v-else-if="props.stats !== undefined"
             class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8"
         >
-            <div>
-                <p class="text-sm font-medium text-gray-500">Workspace</p>
-                <h2 class="text-xl font-semibold text-gray-900">
-                    Operations dashboard
-                </h2>
-            </div>
-
             <section aria-label="Dashboard shortcuts">
                 <h3 class="mb-3 text-sm font-semibold text-gray-700">
                     Shortcuts
@@ -140,13 +127,13 @@ const severityClasses: Record<ActiveOutbreak['severity'], string> = {
                 <div class="flex flex-wrap gap-3">
                     <Link
                         :href="scansCreate().url"
-                        class="inline-flex items-center rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+                        class="inline-flex items-center rounded-full bg-[#14391f] px-5 py-2 text-sm font-semibold text-[#FBEB9A] transition hover:bg-[#0f2d19] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14391f]"
                     >
                         New scan
                     </Link>
                     <Link
                         :href="reportsIndex().url"
-                        class="inline-flex items-center rounded-md border border-emerald-700 bg-white px-4 py-2 text-sm font-semibold text-emerald-800 shadow-sm transition hover:bg-emerald-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+                        class="inline-flex items-center rounded-full bg-white px-5 py-2 text-sm font-semibold text-[#14391f] shadow-sm transition hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14391f]"
                     >
                         Reports
                     </Link>
@@ -159,75 +146,80 @@ const severityClasses: Record<ActiveOutbreak['severity'], string> = {
             >
                 <Link
                     :href="outbreaksIndex().url"
-                    class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition hover:border-emerald-300 hover:shadow-md"
+                    class="rounded-2xl bg-[#14391f] p-6 shadow-sm transition hover:bg-[#0f2d19]"
                 >
-                    <p class="text-sm font-medium text-gray-500">
+                    <p class="text-sm font-medium text-white/75">
                         Active outbreaks
                     </p>
-                    <p class="mt-2 text-3xl font-semibold text-gray-900">
+                    <p class="mt-2 text-3xl font-bold text-[#FBEB9A]">
                         {{ props.stats.active_outbreaks }}
                     </p>
-                    <span class="mt-2 block text-sm text-emerald-700">
+                    <span
+                        class="mt-2 block text-sm text-[#FBEB9A] hover:underline"
+                    >
                         View outbreaks
                     </span>
                 </Link>
 
-                <article
-                    class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
-                >
+                <article class="rounded-2xl bg-white p-6 shadow-sm">
                     <p class="text-sm font-medium text-gray-500">
                         Scans in the last 7 days
                     </p>
-                    <p class="mt-2 text-3xl font-semibold text-gray-900">
+                    <p class="mt-2 text-3xl font-bold text-[#14391f]">
                         {{ props.stats.scans_last_7_days }}
                     </p>
                 </article>
 
                 <Link
                     :href="alertsIndex().url"
-                    class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition hover:border-emerald-300 hover:shadow-md"
+                    class="rounded-2xl bg-white p-6 shadow-sm transition hover:shadow-md"
                 >
                     <p class="text-sm font-medium text-gray-500">
                         Unread alerts
                     </p>
-                    <p class="mt-2 text-3xl font-semibold text-emerald-700">
+                    <p class="mt-2 text-3xl font-bold text-[#14391f]">
                         {{ page.props.unread_alerts_count }}
                     </p>
-                    <span class="mt-2 block text-sm text-emerald-700">
+                    <span
+                        class="mt-2 block text-sm text-[#14391f] hover:underline"
+                    >
                         View alerts
                     </span>
                 </Link>
 
                 <template v-if="props.admin_stats !== undefined">
-                    <article
-                        class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
-                    >
+                    <article class="rounded-2xl bg-white p-6 shadow-sm">
                         <p class="text-sm font-medium text-gray-500">
                             Total users
                         </p>
-                        <p class="mt-2 text-3xl font-semibold text-gray-900">
+                        <p class="mt-2 text-3xl font-bold text-[#14391f]">
                             {{ props.admin_stats.users_count }}
                         </p>
                     </article>
 
                     <Link
                         :href="encyclopediaIndex().url"
-                        class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition hover:border-emerald-300 hover:shadow-md"
+                        class="rounded-2xl bg-white p-6 shadow-sm transition hover:shadow-md lg:col-span-2"
                     >
                         <p class="text-sm font-medium text-gray-500">
                             Diseases
                         </p>
-                        <p class="mt-2 text-3xl font-semibold text-emerald-700">
+                        <p class="mt-2 text-3xl font-bold text-[#14391f]">
                             {{ props.admin_stats.diseases_count }}
                         </p>
-                        <span class="mt-2 block text-sm text-emerald-700">
+                        <span
+                            class="mt-2 block text-sm text-[#14391f] hover:underline"
+                        >
                             View encyclopedia
                         </span>
                     </Link>
                 </template>
             </section>
 
-            <DashboardRecentScans :scans="props.recent_scans ?? []" />
+            <DashboardRecentScans
+                :scans="props.recent_scans ?? []"
+                subtitle="Latest scans across Bataan"
+            />
         </main>
 
         <div v-else class="py-12">

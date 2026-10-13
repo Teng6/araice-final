@@ -62,8 +62,17 @@ const submit = () => {
 </script>
 
 <template>
-    <GuestLayout>
+    <GuestLayout class="max-w-2xl">
         <Head title="Register" />
+
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold tracking-tight text-white">
+                Create your account
+            </h1>
+            <p class="mt-1 text-sm text-white/75">
+                Join A-RAICE to connect your farm with local resources.
+            </p>
+        </div>
 
         <form @submit.prevent="submit">
             <div>
@@ -133,32 +142,37 @@ const submit = () => {
                 />
             </div>
 
-            <div class="mt-4">
-                <InputLabel for="barangay" value="Barangay" />
-                <TextInput
-                    id="barangay"
-                    v-model="form.barangay"
-                    type="text"
-                    class="mt-1 block w-full"
-                    required
-                />
-                <InputError class="mt-2" :message="form.errors.barangay" />
-            </div>
+            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                    <InputLabel for="barangay" value="Barangay" />
+                    <TextInput
+                        id="barangay"
+                        v-model="form.barangay"
+                        type="text"
+                        class="mt-1 block w-full"
+                        required
+                    />
+                    <InputError class="mt-2" :message="form.errors.barangay" />
+                </div>
 
-            <div class="mt-4">
-                <InputLabel for="municipality" value="Municipality" />
-                <select
-                    id="municipality"
-                    v-model="form.municipality"
-                    class="mt-1 block w-full rounded-md border-gray-300"
-                    required
-                >
-                    <option value="" disabled>Select municipality</option>
-                    <option v-for="m in municipalities" :key="m" :value="m">
-                        {{ m }}
-                    </option>
-                </select>
-                <InputError class="mt-2" :message="form.errors.municipality" />
+                <div>
+                    <InputLabel for="municipality" value="Municipality" />
+                    <select
+                        id="municipality"
+                        v-model="form.municipality"
+                        class="mt-1 block w-full rounded-md border-gray-300"
+                        required
+                    >
+                        <option value="" disabled>Select municipality</option>
+                        <option v-for="m in municipalities" :key="m" :value="m">
+                            {{ m }}
+                        </option>
+                    </select>
+                    <InputError
+                        class="mt-2"
+                        :message="form.errors.municipality"
+                    />
+                </div>
             </div>
 
             <div class="mt-4">
@@ -179,7 +193,7 @@ const submit = () => {
             <div class="mt-4">
                 <button
                     type="button"
-                    class="rounded-md bg-gray-800 px-3 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50"
+                    class="rounded-full border border-white/40 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/15 focus:ring-2 focus:ring-[#FBEB9A] focus:outline-none disabled:opacity-50"
                     :disabled="locating"
                     @click="useMyLocation()"
                 >
@@ -189,47 +203,51 @@ const submit = () => {
                             : 'Use my current location'
                     }}
                 </button>
-                <p v-if="locationError" class="mt-2 text-sm text-red-600">
+                <p v-if="locationError" class="mt-2 text-sm text-red-200">
                     {{ locationError }}
                 </p>
             </div>
 
-            <div class="mt-4">
-                <InputLabel for="farm_lat" value="Farm latitude" />
-                <TextInput
-                    id="farm_lat"
-                    v-model="form.farm_lat"
-                    type="number"
-                    step="any"
-                    class="mt-1 block w-full"
-                    required
-                />
-                <InputError class="mt-2" :message="form.errors.farm_lat" />
+            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                    <InputLabel for="farm_lat" value="Farm latitude" />
+                    <TextInput
+                        id="farm_lat"
+                        v-model="form.farm_lat"
+                        type="number"
+                        step="any"
+                        class="mt-1 block w-full"
+                        required
+                    />
+                    <InputError class="mt-2" :message="form.errors.farm_lat" />
+                </div>
+
+                <div>
+                    <InputLabel for="farm_long" value="Farm longitude" />
+                    <TextInput
+                        id="farm_long"
+                        v-model="form.farm_long"
+                        type="number"
+                        step="any"
+                        class="mt-1 block w-full"
+                        required
+                    />
+                    <InputError class="mt-2" :message="form.errors.farm_long" />
+                </div>
             </div>
 
-            <div class="mt-4">
-                <InputLabel for="farm_long" value="Farm longitude" />
-                <TextInput
-                    id="farm_long"
-                    v-model="form.farm_long"
-                    type="number"
-                    step="any"
-                    class="mt-1 block w-full"
-                    required
-                />
-                <InputError class="mt-2" :message="form.errors.farm_long" />
-            </div>
-
-            <div class="mt-4 flex items-center justify-end">
+            <div class="mt-6">
                 <Link
                     :href="login().url"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+                    class="block rounded-md text-sm font-medium text-white/85 underline underline-offset-4 transition hover:text-[#FBEB9A] focus:ring-2 focus:ring-[#FBEB9A] focus:outline-none"
                 >
                     Already registered?
                 </Link>
+            </div>
 
+            <div class="mt-4">
                 <PrimaryButton
-                    class="ms-4"
+                    variant="auth"
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                 >

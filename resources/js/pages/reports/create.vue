@@ -24,12 +24,6 @@ function submit() {
     <Head title="New Report" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl leading-tight font-semibold text-gray-800">
-                New Report
-            </h2>
-        </template>
-
         <div class="mx-auto max-w-xl py-6 sm:px-6 lg:px-8">
             <div class="space-y-4 rounded-lg bg-white p-6 shadow">
                 <div>

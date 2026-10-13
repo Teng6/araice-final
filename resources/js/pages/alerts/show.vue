@@ -32,21 +32,13 @@ function formatDate(value: string | null): string {
     <Head title="Alert" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl leading-tight font-semibold text-gray-800">
-                    Alert #{{ alert.id }}
-                </h2>
-                <Link
-                    :href="index().url"
-                    class="text-sm text-indigo-600 hover:underline"
-                >
-                    &larr; Back to alerts
-                </Link>
-            </div>
-        </template>
-
         <div class="mx-auto max-w-3xl py-6 sm:px-6 lg:px-8">
+            <Link
+                :href="index().url"
+                class="mb-4 inline-block text-sm text-indigo-600 hover:underline"
+            >
+                &larr; Back to alerts
+            </Link>
             <div class="rounded-lg bg-white p-6 shadow">
                 <div class="flex flex-wrap items-center gap-2">
                     <span

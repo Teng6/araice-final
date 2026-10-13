@@ -24,12 +24,6 @@ function submit() {
     <Head title="Add disease" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl leading-tight font-semibold text-gray-800">
-                Add disease
-            </h2>
-        </template>
-
         <main class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
             <form
                 class="space-y-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"

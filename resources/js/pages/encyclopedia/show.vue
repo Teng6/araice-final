@@ -34,7 +34,7 @@ function deleteDisease() {
     <Head :title="disease.name" />
 
     <EncyclopediaLayout>
-        <div class="mx-auto max-w-3xl px-4 py-8">
+        <div class="mx-auto max-w-3xl px-4 pb-8">
             <Link :href="index()" class="text-sm text-gray-600 hover:underline"
                 >← Back to encyclopedia</Link
             >

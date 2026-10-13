@@ -42,12 +42,6 @@ function close(id: number): void {
     <Head title="Outbreaks" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl leading-tight font-semibold text-gray-800">
-                Outbreaks
-            </h2>
-        </template>
-
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div

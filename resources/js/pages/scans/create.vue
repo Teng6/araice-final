@@ -105,15 +105,6 @@ onBeforeUnmount(() => {
     <Head title="New Scan" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <div>
-                <p class="text-sm font-medium text-gray-500">Workspace</p>
-                <h2 class="text-xl leading-tight font-semibold text-gray-800">
-                    New scan
-                </h2>
-            </div>
-        </template>
-
         <main class="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
             <nav aria-label="Breadcrumb" class="text-sm">
                 <Link

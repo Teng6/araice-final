@@ -23,14 +23,6 @@ app
     <Head title="Alerts" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl leading-tight font-semibold text-gray-800">
-                    Alerts
-                </h2>
-            </div>
-        </template>
-
         <div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
             <p v-if="alerts.data.length === 0" class="text-gray-500">
                 No alerts yet.

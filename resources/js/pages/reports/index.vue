@@ -23,11 +23,8 @@ defineProps<{
     <Head title="Reports" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl leading-tight font-semibold text-gray-800">
-                    Reports
-                </h2>
+        <div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+            <div class="mb-4 flex justify-end">
                 <Link
                     :href="create().url"
                     class="rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
@@ -35,9 +32,6 @@ defineProps<{
                     New Report
                 </Link>
             </div>
-        </template>
-
-        <div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
             <div class="overflow-hidden rounded-lg bg-white shadow">
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
                     <thead class="bg-gray-50 text-left text-gray-600">

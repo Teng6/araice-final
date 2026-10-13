@@ -18,38 +18,13 @@ const statusClasses: Record<Scan['status'], string> = {
     <Head title="Scan Result" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between gap-4">
-                <div>
-                    <p class="text-sm font-medium text-gray-500">
-                        Scan results
-                    </p>
-                    <h2
-                        class="text-xl leading-tight font-semibold text-gray-800"
-                    >
-                        Scan #{{ scan.id }}
-                    </h2>
-                </div>
-                <Link
-                    :href="scansIndex().url"
-                    class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
-                >
-                    Back to scans
-                </Link>
-            </div>
-        </template>
-
         <main class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-            <nav aria-label="Breadcrumb" class="text-sm">
-                <Link
-                    :href="scansIndex().url"
-                    class="font-medium text-emerald-700 hover:text-emerald-800"
-                >
-                    Scans
-                </Link>
-                <span class="px-2 text-gray-400">/</span>
-                <span class="text-gray-500"> Scan #{{ scan.id }} </span>
-            </nav>
+            <Link
+                :href="scansIndex().url"
+                class="inline-block text-sm font-medium text-emerald-700 hover:text-emerald-800"
+            >
+                &larr; Back to scans
+            </Link>
 
             <div
                 class="grid items-start gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]"

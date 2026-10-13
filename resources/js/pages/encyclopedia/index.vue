@@ -18,21 +18,16 @@ const isAdmin = computed(() => page.props.auth.user?.role === 'admin');
     <Head title="Encyclopedia" />
 
     <EncyclopediaLayout>
-        <div class="mx-auto max-w-6xl px-4 py-8">
-            <div class="flex items-center justify-between gap-4">
-                <h1 class="text-2xl font-semibold">
-                    Rice Disease Encyclopedia
-                </h1>
+        <div class="mx-auto max-w-7xl px-4 pt-8 sm:px-6">
+            <div v-if="isAdmin" class="mb-4 flex justify-end">
                 <Link
-                    v-if="isAdmin"
                     :href="createDisease().url"
                     class="inline-flex shrink-0 items-center rounded-md bg-emerald-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
                 >
                     Add disease
                 </Link>
             </div>
-
-            <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <Link
                     v-for="disease in diseases"
                     :key="disease.id"
@@ -118,6 +113,9 @@ const isAdmin = computed(() => page.props.auth.user?.role === 'admin');
 }
 
 .overview-content {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
     width: 100%;
 }
 
@@ -126,13 +124,14 @@ const isAdmin = computed(() => page.props.auth.user?.role === 'admin');
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    margin-top: 1rem;
+    margin-top: auto;
     border-top: 1px solid rgb(243 244 246);
     padding-top: 0.75rem;
 }
 
 .card .face.face2 {
     flex-direction: column;
+    overflow: hidden;
     border-radius: 0.75rem;
     background: rgb(249 250 251);
     transition:

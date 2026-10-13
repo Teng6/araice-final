@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import {
-    create,
-    index as scansIndex,
-    show,
-} from '@/actions/App/Http/Controllers/ScanController';
+import { create, show } from '@/actions/App/Http/Controllers/ScanController';
 
 interface Scan {
     id: number;
@@ -42,16 +38,8 @@ const statusClasses: Record<Scan['status'], string> = {
     <Head title="Scans" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between gap-4">
-                <div>
-                    <p class="text-sm font-medium text-gray-500">Workspace</p>
-                    <h2
-                        class="text-xl leading-tight font-semibold text-gray-800"
-                    >
-                        Scan history
-                    </h2>
-                </div>
+        <main class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+            <div class="flex justify-end">
                 <Link
                     :href="create().url"
                     class="inline-flex items-center rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
@@ -59,19 +47,6 @@ const statusClasses: Record<Scan['status'], string> = {
                     New scan
                 </Link>
             </div>
-        </template>
-
-        <main class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
-            <nav aria-label="Breadcrumb" class="text-sm">
-                <Link
-                    :href="scansIndex().url"
-                    class="font-medium text-emerald-700 hover:text-emerald-800"
-                >
-                    Scans
-                </Link>
-                <span class="px-2 text-gray-400">/</span>
-                <span class="text-gray-500">History</span>
-            </nav>
 
             <section
                 v-if="scans.data.length === 0"

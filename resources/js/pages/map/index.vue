@@ -340,12 +340,6 @@ onMounted(() => {
     <Head title="Outbreak Map" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl leading-tight font-semibold text-gray-800">
-                Outbreak Map
-            </h2>
-        </template>
-
         <div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
             <div class="relative">
                 <div ref="mapEl" class="h-128 w-full rounded-lg shadow"></div>
@@ -516,10 +510,6 @@ onMounted(() => {
                     </ul>
                 </aside>
             </div>
-
-            <p v-if="!outbreaks.length" class="mt-4 text-sm text-gray-500">
-                No active outbreaks.
-            </p>
         </div>
     </AuthenticatedLayout>
 </template>
