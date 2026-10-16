@@ -12,7 +12,7 @@ Route::post('/login', [AuthController::class, 'login'])
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
-    Route::post('/scans', [ScanController::class, 'store']);
+    Route::post('/scans', [ScanController::class, 'store'])->middleware('throttle:scans');
     Route::get('/scans', [ScanController::class, 'index']);
     Route::get('/scans/{scan}', [ScanController::class, 'show']);
     Route::get('/alerts', [AlertController::class, 'index']);

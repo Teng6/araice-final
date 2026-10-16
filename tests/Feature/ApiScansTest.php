@@ -103,6 +103,37 @@ test('all mobile scan endpoints require authentication', function () {
     ])->assertUnauthorized();
 });
 
+test('mobile scan creation is limited to five requests per user per minute', function () {
+    $user = User::factory()->create(['role' => UserRole::Farmer]);
+    FarmerProfile::factory()->for($user)->create();
+    $otherUser = User::factory()->create(['role' => UserRole::Farmer]);
+    FarmerProfile::factory()->for($otherUser)->create();
+    $token = $user->createToken('mobile')->plainTextToken;
+    $otherToken = $otherUser->createToken('mobile')->plainTextToken;
+    $payload = [
+        'image' => UploadedFile::fake()->create('leaf.jpg', 100, 'image/jpeg'),
+    ];
+
+    for ($request = 0; $request < 5; $request++) {
+        $this->withToken($token)
+            ->withHeader('Accept', 'application/json')
+            ->post('/api/scans', $payload)
+            ->assertCreated();
+    }
+
+    $this->withToken($token)
+        ->withHeader('Accept', 'application/json')
+        ->post('/api/scans', $payload)
+        ->assertTooManyRequests();
+
+    $this->app['auth']->forgetGuards();
+
+    $this->withToken($otherToken)
+        ->withHeader('Accept', 'application/json')
+        ->post('/api/scans', $payload)
+        ->assertCreated();
+});
+
 test('a farmer cannot access another farmers mobile scan detail', function () {
     $user = User::factory()->create(['role' => UserRole::Farmer]);
     FarmerProfile::factory()->for($user)->create();
