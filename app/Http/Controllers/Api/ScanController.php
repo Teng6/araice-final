@@ -93,6 +93,7 @@ class ScanController extends Controller
     ): array {
         $data = [
             'id' => $scan->id,
+            'created_at' => $scan->created_at,
             'status' => $scan->status->value,
             'disease' => $scan->disease === null ? null : [
                 'id' => $scan->disease->id,

@@ -58,6 +58,8 @@ test('authenticated users of every role can submit a mobile scan', function () {
             ->assertJsonPath('outbreak_id', null);
 
         $scan = Scan::findOrFail($response->json('id'));
+        $response->assertJsonPath('created_at', $scan->created_at->toJSON());
+
         expect($scan->farmer_id)->toBe($farmer->id)
             ->and($scan->uploaded_by_id)->toBe($user->id);
     }
@@ -287,7 +289,10 @@ test('mobile scan lists are paginated and scoped by role and detail includes dis
     $farmerList = $this->withToken($farmerUser->createToken('mobile')->plainTextToken)
         ->getJson('/api/scans');
 
-    $farmerList->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $ownScan->id);
+    $farmerList->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $ownScan->id)
+        ->assertJsonPath('data.0.created_at', $ownScan->created_at->toJSON());
 
     $staff = User::factory()->create(['role' => UserRole::LguStaff]);
     $this->app['auth']->forgetGuards();
@@ -309,6 +314,7 @@ test('mobile scan lists are paginated and scoped by role and detail includes dis
 
     $detail->assertOk()
         ->assertJsonPath('disease.id', $disease->id)
+        ->assertJsonPath('created_at', $ownScan->created_at->toJSON())
         ->assertJsonPath('confidence', 0.95)
         ->assertJsonPath('gps_lat', 14.5)
         ->assertJsonPath('gps_lng', 120.5)
