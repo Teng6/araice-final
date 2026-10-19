@@ -191,7 +191,11 @@ onBeforeUnmount(() => {
                             Scan details
                         </h3>
                         <p class="mt-1 text-sm text-gray-500">
-                            Upload a leaf photo and select the farmer.
+                            {{
+                                requiresFarmer
+                                    ? 'Upload a leaf photo and select the farmer.'
+                                    : 'Upload a leaf photo to check your rice for disease.'
+                            }}
                         </p>
                     </div>
 

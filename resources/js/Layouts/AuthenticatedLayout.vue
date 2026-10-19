@@ -208,6 +208,20 @@ function isCurrent(path: string, includeChildren = false): boolean {
                                         </template>
 
                                         <template #content>
+                                            <div
+                                                class="px-4 py-2 text-xs font-medium text-gray-500"
+                                            >
+                                                {{
+                                                    $page.props.auth.user
+                                                        .role === 'farmer'
+                                                        ? 'Farmer'
+                                                        : $page.props.auth.user
+                                                                .role ===
+                                                            'lgu_staff'
+                                                          ? 'LGU'
+                                                          : 'Admin'
+                                                }}
+                                            </div>
                                             <DropdownLink
                                                 :href="profileEdit().url"
                                             >
@@ -380,6 +394,19 @@ function isCurrent(path: string, includeChildren = false): boolean {
                                         class="text-sm font-medium text-gray-600"
                                     >
                                         {{ $page.props.auth.user.email }}
+                                    </div>
+                                    <div
+                                        class="mt-1 text-xs font-medium text-gray-500"
+                                    >
+                                        {{
+                                            $page.props.auth.user.role ===
+                                            'farmer'
+                                                ? 'Farmer'
+                                                : $page.props.auth.user.role ===
+                                                    'lgu_staff'
+                                                  ? 'LGU'
+                                                  : 'Admin'
+                                        }}
                                     </div>
                                 </div>
 
