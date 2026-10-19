@@ -31,6 +31,7 @@ class RegisterFarmerRequest extends FormRequest
             'contact_number' => ['required', 'string', 'max:20'],
             'farm_lat' => ['required', 'numeric', 'between:14.3,14.95'],
             'farm_long' => ['required', 'numeric', 'between:120.2,120.7'],
+            'plot_count' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:100'],
         ];
     }
 
@@ -46,7 +47,7 @@ class RegisterFarmerRequest extends FormRequest
     }
 
     /**
-     * @return array{name: string, email: string, password: string, barangay: string, municipality: string, contact_number: string, farm_lat: float, farm_long: float}
+     * @return array{name: string, email: string, password: string, barangay: string, municipality: string, contact_number: string, farm_lat: float, farm_long: float, plot_count: int|null}
      */
     public function registrationData(): array
     {
@@ -61,6 +62,7 @@ class RegisterFarmerRequest extends FormRequest
             || ! is_string($validated['contact_number'] ?? null)
             || ! is_numeric($validated['farm_lat'] ?? null)
             || ! is_numeric($validated['farm_long'] ?? null)
+            || (isset($validated['plot_count']) && filter_var($validated['plot_count'], FILTER_VALIDATE_INT) === false)
         ) {
             throw new LogicException('Validated farmer registration data has an unexpected shape.');
         }
@@ -74,6 +76,7 @@ class RegisterFarmerRequest extends FormRequest
             'contact_number' => $validated['contact_number'],
             'farm_lat' => (float) $validated['farm_lat'],
             'farm_long' => (float) $validated['farm_long'],
+            'plot_count' => isset($validated['plot_count']) ? (int) $validated['plot_count'] : null,
         ];
     }
 }

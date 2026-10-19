@@ -22,12 +22,16 @@ test('new users can register', function () {
         'contact_number' => '09123456789',
         'farm_lat' => 14.6216,
         'farm_long' => 120.5772,
+        'plot_count' => 6,
     ]);
 
     $this->assertAuthenticated();
     $response->assertRedirect(route('dashboard', absolute: false));
     $this->assertDatabaseHas('users', ['email' => 'test@example.com']);
-    $this->assertDatabaseHas('farmer_profiles', ['contact_number' => '09123456789']);
+    $this->assertDatabaseHas('farmer_profiles', [
+        'contact_number' => '09123456789',
+        'plot_count' => 6,
+    ]);
     expect(User::where('email', 'test@example.com')->firstOrFail()->hasVerifiedEmail())->toBeTrue();
     Notification::assertNothingSent();
 

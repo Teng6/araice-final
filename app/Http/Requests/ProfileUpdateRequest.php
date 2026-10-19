@@ -30,6 +30,7 @@ class ProfileUpdateRequest extends FormRequest
             'contact_number' => ['sometimes', 'required', 'string', 'max:20'],
             'farm_lat' => ['sometimes', 'required', 'numeric', 'between:14.3,14.95'],
             'farm_long' => ['sometimes', 'required', 'numeric', 'between:120.2,120.7'],
+            'plot_count' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:100'],
         ];
     }
 

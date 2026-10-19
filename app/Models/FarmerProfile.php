@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property int $user_id
  * @property MunicipalityEnum $municipality
+ * @property int|null $plot_count
  */
 class FarmerProfile extends Model
 {
@@ -21,12 +22,13 @@ class FarmerProfile extends Model
     use HasFactory;
 
     protected $fillable = ['full_name', 'barangay', 'municipality', 'contact_number',
-        'farm_lat', 'farm_long'];
+        'farm_lat', 'farm_long', 'plot_count'];
 
     protected function casts(): array
     {
         return [
             'municipality' => MunicipalityEnum::class,
+            'plot_count' => 'integer',
         ];
     }
 

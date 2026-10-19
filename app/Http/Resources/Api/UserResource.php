@@ -30,6 +30,7 @@ class UserResource extends JsonResource
                 'contact_number' => $profile->contact_number,
                 'farm_lat' => $profile->farm_lat,
                 'farm_long' => $profile->farm_long,
+                'plot_count' => $profile->plot_count,
             ];
         }
 

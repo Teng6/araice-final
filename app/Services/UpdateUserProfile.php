@@ -32,6 +32,7 @@ class UpdateUserProfile
                     'contact_number',
                     'farm_lat',
                     'farm_long',
+                    'plot_count',
                 ]));
                 $profileData['full_name'] = $user->name;
 

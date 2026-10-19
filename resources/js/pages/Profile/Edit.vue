@@ -8,6 +8,7 @@ import { Head } from '@inertiajs/vue3';
 defineProps<{
     mustVerifyEmail?: boolean;
     status?: string;
+    farmerPlotCount: number | null;
 }>();
 </script>
 
@@ -21,6 +22,7 @@ defineProps<{
                     <UpdateProfileInformationForm
                         :must-verify-email="mustVerifyEmail"
                         :status="status"
+                        :farmer-plot-count="farmerPlotCount"
                     />
                 </section>
 

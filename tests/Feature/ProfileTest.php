@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Enums\UserRole;
+use App\Models\FarmerProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -59,6 +61,26 @@ class ProfileTest extends TestCase
             ->assertRedirect('/profile');
 
         $this->assertNotNull($user->refresh()->email_verified_at);
+    }
+
+    public function test_farmer_can_update_their_plot_count(): void
+    {
+        $user = User::factory()->create(['role' => UserRole::Farmer]);
+        $profile = FarmerProfile::factory()->for($user)->create(['plot_count' => 3]);
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => $user->name,
+                'email' => $user->email,
+                'plot_count' => 7,
+            ]);
+
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect('/profile');
+
+        $this->assertSame(7, $profile->fresh()->plot_count);
     }
 
     public function test_user_can_delete_their_account(): void

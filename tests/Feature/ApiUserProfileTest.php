@@ -29,6 +29,7 @@ test('farmers LGU staff and admins can update their own profile and password', f
                 'contact_number' => '09123456789',
                 'farm_lat' => 14.7,
                 'farm_long' => 120.6,
+                'plot_count' => 9,
             ];
         }
 
@@ -77,6 +78,7 @@ test('farmer profile update changes the editable farm fields and response matche
         'contact_number' => '09123456789',
         'farm_lat' => 14.7,
         'farm_long' => 120.6,
+        'plot_count' => 9,
     ];
 
     $updated = $this->withToken($token)
@@ -86,13 +88,15 @@ test('farmer profile update changes the editable farm fields and response matche
         ->assertJsonPath('farmer_profile.barangay', 'San Vicente')
         ->assertJsonPath('farmer_profile.contact_number', '09123456789')
         ->assertJsonPath('farmer_profile.farm_lat', 14.7)
-        ->assertJsonPath('farmer_profile.farm_long', 120.6);
+        ->assertJsonPath('farmer_profile.farm_long', 120.6)
+        ->assertJsonPath('farmer_profile.plot_count', 9);
 
     $profile->refresh();
     expect($profile->full_name)->toBe('Updated Farm Owner')
         ->and($profile->barangay)->toBe('San Vicente')
         ->and($profile->municipality)->toBe(MunicipalityEnum::Orion)
-        ->and($profile->contact_number)->toBe('09123456789');
+        ->and($profile->contact_number)->toBe('09123456789')
+        ->and($profile->plot_count)->toBe(9);
 
     $this->app['auth']->forgetGuards();
     $this->withToken($token)
@@ -116,6 +120,30 @@ test('profile update validates duplicate email and coordinates outside Bataan', 
         ])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['email', 'farm_lat', 'farm_long']);
+});
+
+test('profile update rejects invalid plot counts', function () {
+    $user = User::factory()->create(['role' => UserRole::Farmer]);
+    FarmerProfile::factory()->for($user)->create();
+    $token = $user->createToken('mobile')->plainTextToken;
+
+    $this->withToken($token)
+        ->patchJson('/api/user', [
+            'name' => $user->name,
+            'email' => $user->email,
+            'plot_count' => 0,
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['plot_count']);
+
+    $this->withToken($token)
+        ->patchJson('/api/user', [
+            'name' => $user->name,
+            'email' => $user->email,
+            'plot_count' => 'text',
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['plot_count']);
 });
 
 test('password update validates current password and confirmation', function () {

@@ -14,6 +14,7 @@ import { index as outbreaksIndex } from '@/actions/App/Http/Controllers/Outbreak
 import { edit as profileEdit } from '@/actions/App/Http/Controllers/ProfileController';
 import { index as reportsIndex } from '@/actions/App/Http/Controllers/ReportController';
 import { index as usersIndex } from '@/actions/App/Http/Controllers/Admin/UserController';
+import { index as farmersIndex } from '@/actions/App/Http/Controllers/Admin/FarmerController';
 import {
     create as scansCreate,
     index as scansIndex,
@@ -153,6 +154,18 @@ function isCurrent(path: string, includeChildren = false): boolean {
                                         "
                                     >
                                         Users
+                                    </NavLink>
+                                    <NavLink
+                                        v-if="
+                                            $page.props.auth.user.role ===
+                                            'admin'
+                                        "
+                                        :href="farmersIndex().url"
+                                        :active="
+                                            isCurrent(farmersIndex().url, true)
+                                        "
+                                    >
+                                        Farmers
                                     </NavLink>
                                 </div>
                             </div>
@@ -339,6 +352,17 @@ function isCurrent(path: string, includeChildren = false): boolean {
                                     :active="isCurrent(usersIndex().url, true)"
                                 >
                                     Users
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    v-if="
+                                        $page.props.auth.user.role === 'admin'
+                                    "
+                                    :href="farmersIndex().url"
+                                    :active="
+                                        isCurrent(farmersIndex().url, true)
+                                    "
+                                >
+                                    Farmers
                                 </ResponsiveNavLink>
                             </div>
 

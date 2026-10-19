@@ -11,7 +11,7 @@ use Illuminate\Validation\ValidationException;
 class CreateFarmerRegistration
 {
     /**
-     * @param  array{name: string, email: string, password: string, barangay: string, municipality: string, contact_number: string, farm_lat: float, farm_long: float}  $validated
+     * @param  array{name: string, email: string, password: string, barangay: string, municipality: string, contact_number: string, farm_lat: float, farm_long: float, plot_count: int|null}  $validated
      */
     public function create(array $validated): User
     {
@@ -44,6 +44,7 @@ class CreateFarmerRegistration
                 'contact_number' => $validated['contact_number'],
                 'farm_lat' => $validated['farm_lat'],
                 'farm_long' => $validated['farm_long'],
+                'plot_count' => $validated['plot_count'],
             ]);
 
             return $user;

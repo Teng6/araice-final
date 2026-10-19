@@ -7,16 +7,17 @@ import { Link, useForm, usePage } from '@inertiajs/vue3';
 import { store as sendVerification } from '@/actions/App/Http/Controllers/Auth/EmailVerificationNotificationController';
 import { update as updateProfile } from '@/actions/App/Http/Controllers/ProfileController';
 
-defineProps<{
+const user = usePage().props.auth.user;
+const props = defineProps<{
     mustVerifyEmail?: boolean;
     status?: string;
+    farmerPlotCount: number | null;
 }>();
-
-const user = usePage().props.auth.user;
 
 const form = useForm({
     name: user.name,
     email: user.email,
+    plot_count: String(props.farmerPlotCount ?? ''),
 });
 </script>
 
@@ -65,6 +66,20 @@ const form = useForm({
                 />
 
                 <InputError class="mt-2" :message="form.errors.email" />
+            </div>
+
+            <div v-if="user.role === 'farmer'">
+                <InputLabel for="plot_count" value="Number of plots" />
+                <TextInput
+                    id="plot_count"
+                    v-model="form.plot_count"
+                    type="number"
+                    min="1"
+                    max="100"
+                    step="1"
+                    class="mt-1 block w-full"
+                />
+                <InputError class="mt-2" :message="form.errors.plot_count" />
             </div>
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">

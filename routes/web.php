@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DiseaseController as AdminDiseaseController;
+use App\Http\Controllers\Admin\FarmerController as AdminFarmerController;
 use App\Http\Controllers\Admin\TreatmentController as AdminTreatmentController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AlertController;
@@ -37,6 +38,8 @@ Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
         Route::patch('users/{user}/deactivate', [AdminUserController::class, 'deactivate'])->name('users.deactivate');
         Route::patch('users/{user}/reactivate', [AdminUserController::class, 'reactivate'])->name('users.reactivate');
         Route::patch('users/{user}/password', [AdminUserController::class, 'resetPassword'])->name('users.password');
+        Route::resource('farmers', AdminFarmerController::class)
+            ->only(['index', 'show', 'edit', 'update']);
         Route::resource('diseases', AdminDiseaseController::class)
             ->except(['index', 'show']);
         Route::post('diseases/{disease}/treatments', [AdminTreatmentController::class, 'store'])

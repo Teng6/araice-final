@@ -59,6 +59,32 @@ test('mobile registration ignores a client-sent role', function () {
         ->toBe(UserRole::Farmer);
 });
 
+test('mobile registration accepts an optional plot count and rejects invalid values', function () {
+    $payload = registrationPayload(['plot_count' => 12]);
+
+    $response = $this->postJson('/api/register', $payload)
+        ->assertCreated();
+
+    $user = User::query()->where('email', $payload['email'])->firstOrFail();
+    $this->assertDatabaseHas('farmer_profiles', [
+        'user_id' => $user->id,
+        'plot_count' => 12,
+    ]);
+
+    $this->withToken($response->json('token'))
+        ->getJson('/api/user')
+        ->assertOk()
+        ->assertJsonPath('farmer_profile.plot_count', 12);
+
+    $this->postJson('/api/register', registrationPayload(['plot_count' => 0]))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['plot_count']);
+
+    $this->postJson('/api/register', registrationPayload(['plot_count' => 'text']))
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['plot_count']);
+});
+
 test('mobile registration validates duplicate email, municipality, coordinates, and password confirmation', function () {
     User::factory()->create(['email' => 'existing@example.test']);
 

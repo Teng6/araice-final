@@ -23,6 +23,7 @@ const form = useForm({
     contact_number: '',
     farm_lat: '',
     farm_long: '',
+    plot_count: '',
 });
 
 const locating = ref(false);
@@ -234,6 +235,20 @@ const submit = () => {
                     />
                     <InputError class="mt-2" :message="form.errors.farm_long" />
                 </div>
+            </div>
+
+            <div class="mt-4">
+                <InputLabel for="plot_count" value="Number of plots" />
+                <TextInput
+                    id="plot_count"
+                    v-model="form.plot_count"
+                    type="number"
+                    min="1"
+                    max="100"
+                    step="1"
+                    class="mt-1 block w-full"
+                />
+                <InputError class="mt-2" :message="form.errors.plot_count" />
             </div>
 
             <div class="mt-6">

@@ -23,6 +23,7 @@ class ProfileController extends Controller
             'mustVerifyEmail' => config('auth.require_email_verification')
                 && $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'farmerPlotCount' => $request->user()->farmerProfile?->plot_count,
         ]);
     }
 
