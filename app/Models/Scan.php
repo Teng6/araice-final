@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
  * @property int $farmer_id
  * @property int|null $disease_id
  * @property int|null $outbreak_id
+ * @property array<array-key, mixed>|null $raw_predictions
  * @property ScanStatusEnum $status
  * @property Carbon|null $scan_date
  */

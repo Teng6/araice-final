@@ -16,6 +16,11 @@ class ScanPolicy
         return true;
     }
 
+    public function filter(User $user): bool
+    {
+        return in_array($user->role, [UserRole::Admin, UserRole::LguStaff], true);
+    }
+
     /**
      * Determine whether the user can view the model.
      */

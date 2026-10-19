@@ -7,6 +7,16 @@ use App\Models\User;
 
 class DiseasePolicy
 {
+    public function viewAny(User $user): bool
+    {
+        return true;
+    }
+
+    public function view(User $user, Disease $disease): bool
+    {
+        return true;
+    }
+
     /**
      * Determine whether the user can create models.
      */

@@ -2,16 +2,34 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\LoginRequest;
+use App\Http\Requests\ProfileUpdateRequest;
+use App\Http\Requests\RegisterFarmerRequest;
+use App\Http\Requests\UpdatePasswordRequest;
+use App\Http\Resources\Api\UserResource;
 use App\Models\User;
+use App\Services\CreateFarmerRegistration;
+use App\Services\UpdateUserPassword;
+use App\Services\UpdateUserProfile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    public function register(
+        RegisterFarmerRequest $request,
+        CreateFarmerRegistration $createFarmer,
+    ): JsonResponse {
+        $user = $createFarmer->create($request->registrationData());
+
+        return response()->json([
+            'token' => $user->createToken('mobile')->plainTextToken,
+            'user' => $this->userData($user),
+        ], 201);
+    }
+
     public function login(LoginRequest $request): JsonResponse
     {
         $credentials = $request->validated();
@@ -31,13 +49,21 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $user->createToken('mobile')->plainTextToken,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role->value,
-            ],
+            'user' => $this->userData($user),
         ]);
+    }
+
+    /**
+     * @return array{id: int, name: string, email: string, role: string}
+     */
+    private function userData(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role->value,
+        ];
     }
 
     public function logout(Request $request): JsonResponse
@@ -51,24 +77,28 @@ class AuthController extends Controller
 
     public function user(Request $request): JsonResponse
     {
-        $user = $request->user();
-        $userData = [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->role->value,
-        ];
+        return response()->json((new UserResource($request->user()))->resolve());
+    }
 
-        if ($user->role === UserRole::Farmer && $user->farmerProfile !== null) {
-            $profile = $user->farmerProfile;
-            $userData['farmer_profile'] = [
-                'municipality' => $profile->municipality->value,
-                'barangay' => $profile->barangay,
-                'farm_lat' => $profile->farm_lat,
-                'farm_long' => $profile->farm_long,
-            ];
-        }
+    public function updateProfile(
+        ProfileUpdateRequest $request,
+        UpdateUserProfile $updateUserProfile,
+    ): JsonResponse {
+        $user = $updateUserProfile->update($request->user(), $request->validated());
 
-        return response()->json($userData);
+        return response()->json((new UserResource($user))->resolve());
+    }
+
+    public function updatePassword(
+        UpdatePasswordRequest $request,
+        UpdateUserPassword $updateUserPassword,
+    ): JsonResponse {
+        $updateUserPassword->update(
+            $request->user(),
+            $request->validated('password'),
+            revokeOtherTokens: true,
+        );
+
+        return response()->json(['message' => 'Password updated successfully.']);
     }
 }

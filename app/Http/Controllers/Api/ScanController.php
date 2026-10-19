@@ -4,28 +4,34 @@ namespace App\Http\Controllers\Api;
 
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexScansRequest;
 use App\Http\Requests\StoreScanRequest;
 use App\Models\FarmerProfile;
 use App\Models\Scan;
 use App\Models\Treatment;
 use App\Services\CreateScan;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
 class ScanController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(IndexScansRequest $request): JsonResponse
     {
         Gate::authorize('viewAny', Scan::class);
 
         $user = $request->user();
+        $filters = $request->validated();
+
+        $staffFilters = array_intersect(
+            array_keys($filters),
+            ['farmer_id', 'municipality', 'disease_id', 'status'],
+        );
+        if ($staffFilters !== []) {
+            Gate::authorize('filter', Scan::class);
+        }
+
         $query = Scan::query()
-            ->with([
-                'disease:id,name',
-                'farmer:id,full_name,contact_number',
-                'outbreak:id,municipality,status',
-            ])
+            ->with('disease:id,name')
             ->latest();
 
         if ($user->role === UserRole::Farmer) {
@@ -33,9 +39,31 @@ class ScanController extends Controller
             abort_unless($profileId !== null, 403);
 
             $query->where('farmer_id', $profileId);
+        } else {
+            $query->with('farmer:id,full_name,contact_number');
+            $query
+                ->when(
+                    $filters['farmer_id'] ?? null,
+                    fn ($query, int $farmerId) => $query->where('farmer_id', $farmerId),
+                )
+                ->when(
+                    $filters['municipality'] ?? null,
+                    fn ($query, string $municipality) => $query->whereHas(
+                        'farmer',
+                        fn ($farmerQuery) => $farmerQuery->where('municipality', $municipality),
+                    ),
+                )
+                ->when(
+                    $filters['disease_id'] ?? null,
+                    fn ($query, int $diseaseId) => $query->where('disease_id', $diseaseId),
+                )
+                ->when(
+                    $filters['status'] ?? null,
+                    fn ($query, string $status) => $query->where('status', $status),
+                );
         }
 
-        $scans = $query->paginate(15)->through(
+        $scans = $query->paginate($filters['per_page'] ?? 15)->through(
             fn (Scan $scan): array => $this->scanData(
                 $scan,
                 $user->role !== UserRole::Farmer,
@@ -94,6 +122,8 @@ class ScanController extends Controller
         $data = [
             'id' => $scan->id,
             'created_at' => $scan->created_at,
+            'image_url' => url('/storage/'.ltrim($scan->image_url, '/')),
+            'top_3' => $this->topPredictions($scan),
             'status' => $scan->status->value,
             'disease' => $scan->disease === null ? null : [
                 'id' => $scan->disease->id,
@@ -139,5 +169,53 @@ class ScanController extends Controller
         }
 
         return $data;
+    }
+
+    /**
+     * @return array<int, array{label: string, confidence: float|int}>
+     */
+    private function topPredictions(Scan $scan): array
+    {
+        $raw = $scan->raw_predictions ?? [];
+        $predictions = data_get($raw, 'data.top_3')
+            ?? data_get($raw, 'data.top_3_predictions')
+            ?? data_get($raw, 'data.predictions')
+            ?? data_get($raw, 'data.top_predictions')
+            ?? data_get($raw, 'top_3')
+            ?? data_get($raw, 'top_3_predictions')
+            ?? data_get($raw, 'predictions');
+
+        if (! is_array($predictions)) {
+            $predictions = array_is_list($raw) ? $raw : null;
+        }
+
+        if (! is_array($predictions) || ! array_is_list($predictions)) {
+            $prediction = data_get($raw, 'data.prediction')
+                ?? data_get($raw, 'prediction');
+            $predictions = is_array($prediction) ? [$prediction] : [];
+        }
+
+        return collect($predictions)
+            ->filter(fn ($prediction): bool => is_array($prediction))
+            ->map(function (array $prediction): ?array {
+                $label = $prediction['label'] ?? $prediction['class_name'] ?? null;
+                $confidence = $prediction['confidence'] ?? null;
+
+                if (! is_string($label) || $label === '' || ! is_numeric($confidence)) {
+                    return null;
+                }
+
+                return [
+                    'label' => $label,
+                    'confidence' => is_int($confidence) || is_float($confidence)
+                        ? $confidence
+                        : (float) $confidence,
+                ];
+            })
+            ->filter()
+            ->sortByDesc('confidence')
+            ->take(3)
+            ->values()
+            ->all();
     }
 }

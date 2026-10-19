@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Enums\MunicipalityEnum;
+use App\Http\Requests\StoreReportRequest;
 use App\Models\Disease;
 use App\Models\Report;
 use App\Services\ReportService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -34,16 +33,11 @@ class ReportController extends Controller
         ]);
     }
 
-    public function store(Request $request, ReportService $service): RedirectResponse
+    public function store(StoreReportRequest $request, ReportService $service): RedirectResponse
     {
         Gate::authorize('create', Report::class);
 
-        $data = $request->validate([
-            'municipality' => ['required', Rule::enum(MunicipalityEnum::class)],
-            'range_start' => ['required', 'date'],
-            'range_end' => ['required', 'date', 'after_or_equal:range_start'],
-            'disease_id' => ['nullable', 'exists:diseases,id'],
-        ]);
+        $data = $request->validated();
 
         $report = Report::create([
             'generated_by' => $request->user()->id,

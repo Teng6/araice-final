@@ -21,7 +21,7 @@ class ScanController extends Controller
 
         return Inertia::render('scans/create', [
             'farmers' => $request->user()->role !== UserRole::Farmer
-                ? FarmerProfile::orderBy('full_name')->get(['id', 'full_name', 'barangay'])
+                ? FarmerProfile::query()->withActiveUser()->orderBy('full_name')->get(['id', 'full_name', 'barangay'])
                 : [],
         ]);
     }

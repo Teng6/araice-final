@@ -22,11 +22,14 @@
         { "key": "password", "value": "password" },
         { "key": "wrongPassword", "value": "not-the-password" },
         { "key": "farmerToken", "value": "" },
+        { "key": "registrationToken", "value": "" },
+        { "key": "registrationEmail", "value": "" },
         { "key": "farmer2Token", "value": "" },
         { "key": "lguToken", "value": "" },
         { "key": "adminToken", "value": "" },
         { "key": "farmerScanId", "value": "" },
         { "key": "farmerProfileId", "value": "" },
+        { "key": "diseaseId", "value": "" },
         { "key": "lguScanId", "value": "" },
         { "key": "farmerAlertId", "value": "" },
         { "key": "firstAlertReadAt", "value": "" }
@@ -50,6 +53,88 @@
                         "type": "text/javascript",
                         "exec": [
                             "pm.test('ViT health responds', function () { pm.expect(pm.response.code).to.be.within(200, 399); });"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Farmer register",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.collectionVariables.set('registrationEmail', 'api-register-' + Date.now() + '-' + Math.floor(Math.random() * 1000000) + '@test.local');"
+                        ]
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('farmer registration succeeds', function () { pm.response.to.have.status(201); });",
+                            "if (pm.response.code === 201) {",
+                            "  const json = pm.response.json();",
+                            "  pm.test('registration response includes plain token and farmer user', () => {",
+                            "    pm.expect(json.token).to.be.a('string').and.not.empty;",
+                            "    pm.expect(json.user).to.include({ email: pm.collectionVariables.get('registrationEmail'), role: 'farmer' });",
+                            "    ['id', 'name', 'email', 'role'].forEach((key) => pm.expect(json.user).to.have.property(key));",
+                            "  });",
+                            "  pm.collectionVariables.set('registrationToken', json.token);",
+                            "}"
+                        ]
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"name\":\"API Smoke Registration Farmer\",\"email\":\"{{registrationEmail}}\",\"password\":\"Password123!\",\"password_confirmation\":\"Password123!\",\"barangay\":\"San Vicente\",\"municipality\":\"orion\",\"contact_number\":\"09123456789\",\"farm_lat\":14.6216,\"farm_long\":120.5772,\"role\":\"admin\"}",
+                    "options": { "raw": { "language": "json" } }
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/register",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "register"]
+                }
+            }
+        },
+        {
+            "name": "Registered farmer user",
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{registrationToken}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/user",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "user"]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('registration token can access the user endpoint', function () { pm.response.to.have.status(200); });",
+                            "pm.test('registered account is a farmer', function () {",
+                            "  pm.expect(pm.response.json().email).to.eql(pm.collectionVariables.get('registrationEmail'));",
+                            "  pm.expect(pm.response.json().role).to.eql('farmer');",
+                            "});"
                         ]
                     }
                 }
@@ -821,6 +906,45 @@
             ]
         },
         {
+            "name": "LGU list farmers",
+            "request": {
+                "method": "GET",
+                "header": [
+                    { "key": "Accept", "value": "application/json" },
+                    { "key": "Authorization", "value": "******" }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/farmers?per_page=50",
+                    "host": ["{{baseUrl}}"],
+                    "path": ["api", "farmers"],
+                    "query": [{ "key": "per_page", "value": "50" }]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                            "const json = pm.response.json();",
+                            "pm.test('paginated farmer directory has expected shape', () => {",
+                            "  pm.expect(json.data).to.be.an('array');",
+                            "  pm.expect(json.meta.per_page).to.eql(50);",
+                            "});",
+                            "const farmer = json.data.find((item) => item.full_name === 'API Farmer One');",
+                            "pm.test('farmer profiles contain only directory fields', () => {",
+                            "  pm.expect(farmer).to.exist;",
+                            "  pm.expect(Object.keys(farmer).sort()).to.eql(['barangay', 'contact_number', 'full_name', 'id', 'municipality']);",
+                            "  pm.expect(farmer.municipality).to.eql('balanga');",
+                            "});",
+                            "if (farmer) pm.collectionVariables.set('farmerProfileId', farmer.id);"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
             "name": "LGU map data",
             "request": {
                 "method": "GET",
@@ -1079,6 +1203,250 @@
                             "});"
                         ]
                     }
+                }
+            ]
+        },
+        {
+            "name": "Read-only reference data and scan filters",
+            "item": [
+                {
+                    "name": "List municipalities",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{lguToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/municipalities",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "municipalities"]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('12 municipality slug and label pairs', function () {",
+                                    "  pm.response.to.have.status(200);",
+                                    "  const rows = pm.response.json().data;",
+                                    "  pm.expect(rows).to.have.length(12);",
+                                    "  pm.expect(rows.find((m) => m.slug === 'balanga').label).to.eql('Balanga');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "List diseases",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{lguToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/diseases",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "diseases"]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('disease list includes encyclopedia summary fields', function () {",
+                                    "  pm.response.to.have.status(200);",
+                                    "  const disease = pm.response.json().data.find((item) => item.name === 'API Smoke Test Disease');",
+                                    "  pm.expect(disease, 'seeded API smoke disease').to.exist;",
+                                    "  pm.expect(disease).to.include.all.keys('id', 'name', 'description', 'image_url');",
+                                    "  pm.collectionVariables.set('diseaseId', disease.id);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Disease detail",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{lguToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/diseases/{{diseaseId}}",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "diseases", "{{diseaseId}}"]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('disease detail includes full encyclopedia fields', function () {",
+                                    "  pm.response.to.have.status(200);",
+                                    "  pm.expect(pm.response.json().data).to.include.all.keys('causes', 'symptoms', 'history', 'prevention_tips', 'sources', 'treatments');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Scans filtered by farmer",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{lguToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/scans?farmer_id={{farmerProfileId}}&per_page=1",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "scans"],
+                            "query": [
+                                {
+                                    "key": "farmer_id",
+                                    "value": "{{farmerProfileId}}"
+                                },
+                                { "key": "per_page", "value": "1" }
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('farmer_id filter returns a paginated scan', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().data).to.have.length(1); pm.expect(pm.response.json().per_page).to.eql(1); });"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Scans filtered by municipality",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{lguToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/scans?municipality=balanga&per_page=1",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "scans"],
+                            "query": [
+                                { "key": "municipality", "value": "balanga" },
+                                { "key": "per_page", "value": "1" }
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('municipality filter returns a paginated scan', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().data).to.have.length(1); });"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Scans filtered by disease",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{lguToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/scans?disease_id={{diseaseId}}&per_page=1",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "scans"],
+                            "query": [
+                                {
+                                    "key": "disease_id",
+                                    "value": "{{diseaseId}}"
+                                },
+                                { "key": "per_page", "value": "1" }
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('disease_id filter returns a paginated scan', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().data).to.have.length(1); });"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Scans filtered by status",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            { "key": "Accept", "value": "application/json" },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{lguToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/scans?status=completed&per_page=1",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "scans"],
+                            "query": [
+                                { "key": "status", "value": "completed" },
+                                { "key": "per_page", "value": "1" }
+                            ]
+                        }
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('status filter returns a paginated scan', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().data).to.have.length(1); });"
+                                ]
+                            }
+                        }
+                    ]
                 }
             ]
         }

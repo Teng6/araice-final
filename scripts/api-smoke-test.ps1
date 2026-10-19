@@ -13,6 +13,7 @@ $script:FarmerScanId = $null
 $script:FarmerProfileId = $null
 $script:LguScanId = $null
 $script:FarmerAlertId = $null
+$script:DiseaseId = $null
 $BaseUrl = $BaseUrl.TrimEnd('/')
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $SampleImage = Join-Path $ProjectRoot 'public\images\stem_rot.jpg'
@@ -103,8 +104,13 @@ function Invoke-Api {
     }
 
     try {
-        $response = Invoke-RestMethod @parameters
-        return @{ Status = 200; Data = $response }
+        $httpResponse = Invoke-WebRequest @parameters
+        $data = $null
+        if (-not [string]::IsNullOrWhiteSpace($httpResponse.Content)) {
+            $data = ConvertFrom-Json -InputObject $httpResponse.Content
+        }
+
+        return @{ Status = [int]$httpResponse.StatusCode; Data = $data }
     }
     catch {
         $httpResponse = $_.Exception.Response
@@ -228,8 +234,64 @@ Write-Check 'ViT health endpoint reachable (retry window: 60 seconds)' {
 }
 $script:VitReachable = ($script:Failed -eq 0)
 
+Write-Check 'farmer registration creates a logged-in account' {
+    $registrationEmail = "api-register-$([guid]::NewGuid().ToString('N'))@test.local"
+    $response = Invoke-Api -Method Post -Path '/api/register' -Body @{
+        name = 'API Smoke Registration Farmer'
+        email = $registrationEmail
+        password = 'Password123!'
+        password_confirmation = 'Password123!'
+        barangay = 'San Vicente'
+        municipality = 'orion'
+        contact_number = '09123456789'
+        farm_lat = 14.6216
+        farm_long = 120.5772
+    }
+    if ($response.Status -ne 201 -or $response.Data.user.role -ne 'farmer' -or
+        [string]::IsNullOrWhiteSpace($response.Data.token)) {
+        throw "Registration returned HTTP $($response.Status) or an invalid response."
+    }
+
+    $profile = Invoke-Api -Method Get -Path '/api/user' -Headers (Get-AuthHeaders $response.Data.token)
+    if ($profile.Status -ne 200 -or $profile.Data.email -ne $registrationEmail -or
+        $profile.Data.role -ne 'farmer') {
+        throw "The registration token could not read its user profile (HTTP $($profile.Status))."
+    }
+}
+
 Write-Check 'farmer login' {
     $script:FarmerToken = Get-LoginToken 'api-farmer@test.local' 'password'
+}
+
+if ($script:FarmerToken) {
+    Write-Check 'municipality list has all slug and label pairs' {
+        $response = Invoke-Api -Method Get -Path '/api/municipalities' -Headers (Get-AuthHeaders $script:FarmerToken)
+        if ($response.Status -ne 200 -or @($response.Data.data).Count -ne 12 -or
+            -not ($response.Data.data | Where-Object { $_.slug -eq 'balanga' -and $_.label -eq 'Balanga' })) {
+            throw "Municipality response is invalid (HTTP $($response.Status))."
+        }
+    }
+
+    Write-Check 'disease list and detail return encyclopedia fields' {
+        $response = Invoke-Api -Method Get -Path '/api/diseases' -Headers (Get-AuthHeaders $script:FarmerToken)
+        $disease = $response.Data.data | Where-Object { $_.name -eq 'API Smoke Test Disease' } | Select-Object -First 1
+        if ($response.Status -ne 200 -or $null -eq $disease -or
+            -not ($disease.PSObject.Properties.Name -contains 'image_url')) {
+            throw "Disease list is invalid (HTTP $($response.Status))."
+        }
+        $script:DiseaseId = [int]$disease.id
+
+        $detail = Invoke-Api -Method Get -Path "/api/diseases/$script:DiseaseId" -Headers (Get-AuthHeaders $script:FarmerToken)
+        $required = @('causes', 'symptoms', 'history', 'prevention_tips', 'sources', 'treatments')
+        if ($detail.Status -ne 200 -or
+            @($required | Where-Object { -not ($detail.Data.data.PSObject.Properties.Name -contains $_) }).Count -gt 0) {
+            throw "Disease detail is missing encyclopedia fields (HTTP $($detail.Status))."
+        }
+    }
+}
+else {
+    Write-Check 'municipality list has all slug and label pairs' { throw 'Skipped because farmer login failed.' }
+    Write-Check 'disease list and detail return encyclopedia fields' { throw 'Skipped because farmer login failed.' }
 }
 
 if ($script:VitReachable -and $script:FarmerToken) {
@@ -253,14 +315,24 @@ else {
 if ($script:FarmerToken -and $script:FarmerScanId) {
     Write-Check 'farmer list contains submitted scan' {
         $response = Invoke-Api -Method Get -Path '/api/scans' -Headers (Get-AuthHeaders $script:FarmerToken)
-        if ($response.Status -ne 200 -or -not ($response.Data.data | Where-Object { $_.id -eq $script:FarmerScanId })) {
+        $scan = $response.Data.data | Where-Object { $_.id -eq $script:FarmerScanId } | Select-Object -First 1
+        if ($response.Status -ne 200 -or $null -eq $scan -or
+            [string]::IsNullOrWhiteSpace($scan.image_url) -or $scan.image_url -notmatch '^https?://' -or
+            [string]::IsNullOrWhiteSpace($scan.created_at) -or
+            -not ($scan.PSObject.Properties.Name -contains 'top_3') -or
+            @($scan.top_3).Count -gt 3) {
             throw "Scan $script:FarmerScanId was not found in farmer list (HTTP $($response.Status))."
         }
     }
 
     Write-Check 'farmer can read submitted scan detail' {
         $response = Invoke-Api -Method Get -Path "/api/scans/$script:FarmerScanId" -Headers (Get-AuthHeaders $script:FarmerToken)
-        if ($response.Status -ne 200 -or $response.Data.id -ne $script:FarmerScanId) {
+        if ($response.Status -ne 200 -or $response.Data.id -ne $script:FarmerScanId -or
+            [string]::IsNullOrWhiteSpace($response.Data.image_url) -or
+            $response.Data.image_url -notmatch '^https?://' -or
+            [string]::IsNullOrWhiteSpace($response.Data.created_at) -or
+            -not ($response.Data.PSObject.Properties.Name -contains 'top_3') -or
+            @($response.Data.top_3).Count -gt 3) {
             throw "Detail request returned HTTP $($response.Status)."
         }
         if ($null -ne $response.Data.disease) {
@@ -282,6 +354,13 @@ else {
 }
 
 if ($script:FarmerToken) {
+    Write-Check 'farmer cannot use staff scan filters' {
+        $response = Invoke-Api -Method Get -Path '/api/scans?municipality=balanga' -Headers (Get-AuthHeaders $script:FarmerToken)
+        if ($response.Status -ne 403) {
+            throw "Expected HTTP 403; received HTTP $($response.Status)."
+        }
+    }
+
     Write-Check 'farmer unread alerts include seeded outbreak alert' {
         $response = Invoke-Api -Method Get -Path '/api/alerts?unread=1' -Headers (Get-AuthHeaders $script:FarmerToken)
         $alert = $response.Data.data | Where-Object {
@@ -367,6 +446,13 @@ else {
 }
 
 if ($script:FarmerToken) {
+    Write-Check 'farmer cannot list the farmer directory' {
+        $response = Invoke-Api -Method Get -Path '/api/farmers' -Headers (Get-AuthHeaders $script:FarmerToken)
+        if ($response.Status -ne 403) {
+            throw "Expected HTTP 403; received HTTP $($response.Status)."
+        }
+    }
+
     Write-Check 'farmer submit without image returns 422' {
         $response = Invoke-MultipartUpload -Token $script:FarmerToken
         if ($response.Status -ne 422) {
@@ -385,6 +471,13 @@ Write-Check 'missing token returns 401' {
     }
 }
 
+Write-Check 'missing token farmer directory returns 401' {
+    $response = Invoke-Api -Method Get -Path '/api/farmers'
+    if ($response.Status -ne 401) {
+        throw "Expected HTTP 401; received HTTP $($response.Status)."
+    }
+}
+
 Write-Check 'missing token alert list returns 401' {
     $response = Invoke-Api -Method Get -Path '/api/alerts'
     if ($response.Status -ne 401) {
@@ -396,6 +489,16 @@ Write-Check 'missing token map returns 401' {
     $response = Invoke-Api -Method Get -Path '/api/map'
     if ($response.Status -ne 401) {
         throw "Expected HTTP 401; received HTTP $($response.Status)."
+    }
+}
+
+Write-Check 'new read-only endpoints require authentication' {
+    $paths = @('/api/municipalities', '/api/diseases', '/api/scans')
+    foreach ($path in $paths) {
+        $response = Invoke-Api -Method Get -Path $path
+        if ($response.Status -ne 401) {
+            throw "$path returned HTTP $($response.Status), expected 401."
+        }
     }
 }
 
@@ -449,6 +552,18 @@ Write-Check 'LGU login' {
 }
 
 if ($script:LguToken) {
+    Write-Check 'LGU farmer directory returns the expected profile fields' {
+        $response = Invoke-Api -Method Get -Path '/api/farmers?per_page=50' -Headers (Get-AuthHeaders $script:LguToken)
+        $profile = $response.Data.data | Where-Object { $_.full_name -eq 'API Farmer One' } | Select-Object -First 1
+        $expectedFields = @('id', 'full_name', 'barangay', 'municipality', 'contact_number')
+        if ($response.Status -ne 200 -or $null -eq $profile -or
+            @($profile.PSObject.Properties.Name | Where-Object { $_ -notin $expectedFields }).Count -gt 0 -or
+            @($expectedFields | Where-Object { $_ -notin $profile.PSObject.Properties.Name }).Count -gt 0) {
+            throw "Farmer directory response is invalid (HTTP $($response.Status))."
+        }
+        $script:FarmerProfileId = [int]$profile.id
+    }
+
     Write-Check 'LGU list includes farmer name and contact' {
         $response = Invoke-Api -Method Get -Path '/api/scans' -Headers (Get-AuthHeaders $script:LguToken)
         $farmerScan = $response.Data.data | Where-Object {
@@ -459,6 +574,28 @@ if ($script:LguToken) {
             throw "LGU list did not include the seeded farmer name and contact (HTTP $($response.Status))."
         }
         $script:FarmerProfileId = [int]$farmerScan.farmer.id
+    }
+
+    foreach ($filter in @(
+        @{ Name = 'farmer_id'; Value = $script:FarmerProfileId },
+        @{ Name = 'municipality'; Value = 'balanga' },
+        @{ Name = 'disease_id'; Value = $script:DiseaseId },
+        @{ Name = 'status'; Value = 'completed' }
+    )) {
+        Write-Check "LGU scan filter $($filter.Name) works" {
+            $path = '/api/scans?'+[uri]::EscapeDataString($filter.Name)+'='+[uri]::EscapeDataString([string]$filter.Value)+'&per_page=1'
+            $response = Invoke-Api -Method Get -Path $path -Headers (Get-AuthHeaders $script:LguToken)
+            if ($response.Status -ne 200 -or $response.Data.per_page -ne 1 -or @($response.Data.data).Count -ne 1) {
+                throw "Filter $($filter.Name) returned an invalid response (HTTP $($response.Status))."
+            }
+        }
+    }
+
+    Write-Check 'LGU scan filters reject invalid values' {
+        $response = Invoke-Api -Method Get -Path '/api/scans?per_page=101&municipality=unknown&status=unknown' -Headers (Get-AuthHeaders $script:LguToken)
+        if ($response.Status -ne 422) {
+            throw "Expected HTTP 422; received HTTP $($response.Status)."
+        }
     }
 
     Write-Check 'LGU alert list includes seeded outbreak alert' {

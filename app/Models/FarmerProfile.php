@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\MunicipalityEnum;
 use Database\Factories\FarmerProfileFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -27,6 +28,15 @@ class FarmerProfile extends Model
         return [
             'municipality' => MunicipalityEnum::class,
         ];
+    }
+
+    /**
+     * @param  Builder<FarmerProfile>  $query
+     * @return Builder<FarmerProfile>
+     */
+    public function scopeWithActiveUser(Builder $query): Builder
+    {
+        return $query->whereHas('user', fn (Builder $userQuery) => $userQuery->whereNull('deactivated_at'));
     }
 
     /**

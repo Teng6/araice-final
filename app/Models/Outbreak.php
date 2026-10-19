@@ -18,6 +18,8 @@ use Illuminate\Support\Carbon;
  * @property OutbreakStatusEnum $status
  * @property int|null $closed_by
  * @property Carbon|null $closed_at
+ * @property int $farmers_count
+ * @property int $scans_count
  */
 class Outbreak extends Model
 {

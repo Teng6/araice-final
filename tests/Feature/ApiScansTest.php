@@ -53,6 +53,9 @@ test('authenticated users of every role can submit a mobile scan', function () {
             ->assertJsonPath('disease.id', $disease->id)
             ->assertJsonPath('disease.name', 'Leaf Spot')
             ->assertJsonPath('confidence', 0.9125)
+            ->assertJsonPath('top_3', [
+                ['label' => 'Leaf Spot', 'confidence' => 91.25],
+            ])
             ->assertJsonPath('gps_lat', 14.6123456)
             ->assertJsonPath('gps_lng', 120.4987654)
             ->assertJsonPath('outbreak_id', null);
