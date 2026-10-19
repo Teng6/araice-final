@@ -38,6 +38,9 @@ class HandleInertiaRequests extends Middleware
                 ?->alerts()
                 ->wherePivotNull('read_at')
                 ->count() ?? 0,
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+            ],
         ];
     }
 }

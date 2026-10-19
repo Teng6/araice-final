@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DiseaseController as AdminDiseaseController;
 use App\Http\Controllers\Admin\TreatmentController as AdminTreatmentController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\AlertController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EncyclopediaController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\OutbreakController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ScanController;
+use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -22,11 +24,19 @@ Route::get('/encyclopedia/{disease}', [EncyclopediaController::class, 'show'])->
 
 Route::get('/dashboard', DashboardController::class)->middleware(array_filter([
     'auth',
+    EnsureUserIsActive::class,
     config('auth.require_email_verification') ? 'verified' : null,
 ]))->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', EnsureUserIsActive::class])->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('users/create', [AdminUserController::class, 'create'])->name('users.create');
+        Route::get('users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::post('users', [AdminUserController::class, 'store'])->name('users.store');
+        Route::patch('users/{user}/role', [AdminUserController::class, 'updateRole'])->name('users.role');
+        Route::patch('users/{user}/deactivate', [AdminUserController::class, 'deactivate'])->name('users.deactivate');
+        Route::patch('users/{user}/reactivate', [AdminUserController::class, 'reactivate'])->name('users.reactivate');
+        Route::patch('users/{user}/password', [AdminUserController::class, 'resetPassword'])->name('users.password');
         Route::resource('diseases', AdminDiseaseController::class)
             ->except(['index', 'show']);
         Route::post('diseases/{disease}/treatments', [AdminTreatmentController::class, 'store'])

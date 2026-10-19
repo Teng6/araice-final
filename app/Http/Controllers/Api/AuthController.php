@@ -23,6 +23,12 @@ class AuthController extends Controller
             ], 401);
         }
 
+        if ($user->isDeactivated()) {
+            return response()->json([
+                'message' => 'Your account has been deactivated. Please contact an administrator.',
+            ], 403);
+        }
+
         return response()->json([
             'token' => $user->createToken('mobile')->plainTextToken,
             'user' => [

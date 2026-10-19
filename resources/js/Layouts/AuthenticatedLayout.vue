@@ -13,6 +13,7 @@ import { index as mapIndex } from '@/actions/App/Http/Controllers/MapController'
 import { index as outbreaksIndex } from '@/actions/App/Http/Controllers/OutbreakController';
 import { edit as profileEdit } from '@/actions/App/Http/Controllers/ProfileController';
 import { index as reportsIndex } from '@/actions/App/Http/Controllers/ReportController';
+import { index as usersIndex } from '@/actions/App/Http/Controllers/Admin/UserController';
 import {
     create as scansCreate,
     index as scansIndex,
@@ -140,6 +141,18 @@ function isCurrent(path: string, includeChildren = false): boolean {
                                         "
                                     >
                                         Encyclopedia
+                                    </NavLink>
+                                    <NavLink
+                                        v-if="
+                                            $page.props.auth.user.role ===
+                                            'admin'
+                                        "
+                                        :href="usersIndex().url"
+                                        :active="
+                                            isCurrent(usersIndex().url, true)
+                                        "
+                                    >
+                                        Users
                                     </NavLink>
                                 </div>
                             </div>
@@ -317,6 +330,15 @@ function isCurrent(path: string, includeChildren = false): boolean {
                                     :active="isCurrent(encyclopediaIndex().url)"
                                 >
                                     Encyclopedia
+                                </ResponsiveNavLink>
+                                <ResponsiveNavLink
+                                    v-if="
+                                        $page.props.auth.user.role === 'admin'
+                                    "
+                                    :href="usersIndex().url"
+                                    :active="isCurrent(usersIndex().url, true)"
+                                >
+                                    Users
                                 </ResponsiveNavLink>
                             </div>
 

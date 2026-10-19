@@ -26,6 +26,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $remember_token
+ * @property Carbon|null $deactivated_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -45,9 +46,15 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
+            'deactivated_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
         ];
+    }
+
+    public function isDeactivated(): bool
+    {
+        return $this->deactivated_at !== null;
     }
 
     /**
